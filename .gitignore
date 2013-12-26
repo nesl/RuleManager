@@ -1,10 +1,5 @@
-target/
 .swp
-.trc
-.phd
 .classpath
 .project
 .settings/
-tmp/
-.csv
-diff
+bin/
