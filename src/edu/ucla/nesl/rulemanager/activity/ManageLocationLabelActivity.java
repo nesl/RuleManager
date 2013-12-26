@@ -51,6 +51,15 @@ public class ManageLocationLabelActivity extends Activity {
 		dataSource.open();
 		labels = dataSource.getLocationLabels(); 
 		locationLabelItemsAdapter.notifyDataSetChanged();
+		
+		if (labels.size() == 2) {
+			LocationLabel l1 = labels.get(0);
+			LocationLabel l2 = labels.get(1);
+			String msg = "distance: " + String.format("%.2f", l1.getDistance(l2)) + " meters.\n";
+			msg += "isOverlap? " + l1.isOverlap(l2);
+			Tools.showAlertDialog(this, "Test", msg);
+		}
+		
 		super.onResume();
 	}
 
