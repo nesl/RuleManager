@@ -1,0 +1,7 @@
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/conflict_rules_text_view"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:gravity="center_vertical|center_horizontal"
+    android:text="@string/conflict_rule_msg"
+    android:textAppearance="?android:attr/textAppearanceMedium" />

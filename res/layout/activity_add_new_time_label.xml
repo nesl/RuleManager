@@ -1,0 +1,144 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context=".AddNewTimeLabelActivity" >
+
+    <TextView
+        android:id="@+id/label_text"
+        android:layout_width="55dp"
+        android:layout_height="45dp"
+        android:gravity="center_vertical|right"
+        android:text="Label: "
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <EditText
+        android:id="@+id/time_label"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/activity_vertical_margin"
+        android:layout_toRightOf="@id/label_text"
+        android:inputType="textNoSuggestions" />
+
+    <TextView
+        android:id="@+id/from"
+        android:layout_width="55dp"
+        android:layout_height="45dp"
+        android:layout_below="@id/time_label"
+        android:gravity="right|center_vertical"
+        android:text="From: "
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <LinearLayout
+        android:id="@+id/from_date_time"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/time_label"
+        android:layout_toRightOf="@id/from"
+        android:orientation="horizontal" >
+
+        <EditText
+            android:id="@+id/from_date"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.5"
+            android:clickable="true"
+            android:focusableInTouchMode="false"
+            android:inputType="date"
+            android:onClick="onClickFromDateEditText" />
+
+        <EditText
+            android:id="@+id/from_time"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.5"
+            android:clickable="true"
+            android:focusableInTouchMode="false"
+            android:inputType="time"
+            android:onClick="onClickFromTimeEditText" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/to"
+        android:layout_width="55dp"
+        android:layout_height="45dp"
+        android:layout_below="@id/from_date_time"
+        android:gravity="center_vertical|right"
+        android:text="To: "
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <LinearLayout
+        android:id="@+id/to_date_time"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/from_date_time"
+        android:layout_toRightOf="@id/to"
+        android:orientation="horizontal" >
+
+        <EditText
+            android:id="@+id/to_date"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.5"
+            android:clickable="true"
+            android:focusableInTouchMode="false"
+            android:inputType="date"
+            android:onClick="onClickToDateEditText" />
+
+        <EditText
+            android:id="@+id/to_time"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.5"
+            android:clickable="true"
+            android:focusableInTouchMode="false"
+            android:inputType="time"
+            android:onClick="onClickToTimeEditText" />
+    </LinearLayout>
+
+    <CheckBox
+        android:id="@+id/checkbox_allday"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/to_date_time"
+        android:layout_marginRight="@dimen/activity_vertical_margin"
+        android:onClick="onAllDayCheckboxClicked"
+        android:text="All Day" />
+
+    <CheckBox
+        android:id="@+id/checkbox_repeat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/to_date_time"
+        android:layout_toRightOf="@id/checkbox_allday"
+        android:onClick="onRepeatCheckboxClicked"
+        android:text="Repeat..." />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:orientation="horizontal" >
+
+        <Button
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:onClick="onClickDoneButton"
+            android:text="@string/done" />
+
+        <Button
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:onClick="onClickCancelButton"
+            android:text="@string/cancel" />
+    </LinearLayout>
+
+</RelativeLayout>

@@ -1,0 +1,140 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context=".AddNewRuleActivity" >
+
+    <Spinner
+        android:id="@+id/rule_action_spinner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <Spinner
+        android:id="@+id/sensor_spinner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/rule_action_spinner" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="45dp"
+        android:layout_below="@id/rule_action_spinner"
+        android:layout_toRightOf="@id/sensor_spinner"
+        android:gravity="center"
+        android:text="data"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <TextView
+        android:id="@+id/with"
+        android:layout_width="wrap_content"
+        android:layout_height="45dp"
+        android:layout_below="@id/sensor_spinner"
+        android:gravity="center"
+        android:text="with"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <Spinner
+        android:id="@+id/consumer_spinner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/sensor_spinner"
+        android:layout_toRightOf="@id/with" />
+
+    <TextView
+        android:id="@+id/when"
+        android:layout_width="wrap_content"
+        android:layout_height="45dp"
+        android:layout_below="@id/consumer_spinner"
+        android:enabled="false"
+        android:gravity="center"
+        android:text="when"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <CheckBox
+        android:id="@+id/checkbox_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/consumer_spinner"
+        android:layout_toRightOf="@id/when" />
+
+    <TextView
+        android:id="@+id/time_is"
+        android:layout_width="wrap_content"
+        android:layout_height="45dp"
+        android:layout_below="@id/consumer_spinner"
+        android:layout_toRightOf="@id/checkbox_time"
+        android:enabled="false"
+        android:gravity="center"
+        android:text="time is"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <edu.ucla.nesl.rulemanager.uielement.MySpinner
+        android:id="@+id/time_label_spinner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/consumer_spinner"
+        android:layout_toRightOf="@id/time_is" />
+
+    <TextView
+        android:id="@+id/and"
+        android:layout_width="wrap_content"
+        android:layout_height="45dp"
+        android:layout_alignRight="@id/when"
+        android:layout_below="@id/time_label_spinner"
+        android:enabled="false"
+        android:gravity="center"
+        android:text="and"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <CheckBox
+        android:id="@+id/checkbox_location"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/time_label_spinner"
+        android:layout_toRightOf="@id/and" />
+
+    <TextView
+        android:id="@+id/location_is"
+        android:layout_width="wrap_content"
+        android:layout_height="45dp"
+        android:layout_below="@id/time_label_spinner"
+        android:layout_toRightOf="@id/checkbox_location"
+        android:enabled="false"
+        android:gravity="center"
+        android:text="location is"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <edu.ucla.nesl.rulemanager.uielement.MySpinner
+        android:id="@+id/location_label_spinner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/time_label_spinner"
+        android:layout_toRightOf="@id/location_is" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:orientation="horizontal" >
+
+        <Button
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:onClick="onClickDoneButton"
+            android:text="@string/done" />
+
+        <Button
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:onClick="onClickCancelButton"
+            android:text="@string/cancel" />
+    </LinearLayout>
+
+</RelativeLayout>

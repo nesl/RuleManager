@@ -1,0 +1,78 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context=".AddNewLocationLabelActivity" >
+
+    <TextView
+        android:id="@+id/label_text"
+        android:layout_width="wrap_content"
+        android:layout_height="45dp"
+        android:gravity="center_vertical|right"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:text="Label: "
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <EditText
+        android:id="@+id/location_label"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="@dimen/activity_horizontal_margin"
+        android:layout_toRightOf="@id/label_text"
+        android:imeOptions="actionDone"
+        android:inputType="textNoSuggestions" />
+
+    <!--
+    <TextView
+        android:id="@+id/address_text"
+        android:layout_width="90dp"
+        android:layout_height="45dp"
+        android:layout_below="@id/location_label"
+        android:gravity="center_vertical|right"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:text="Address: "
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <EditText
+        android:id="@+id/address"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/location_label"
+        android:layout_marginRight="@dimen/activity_horizontal_margin"
+        android:layout_toRightOf="@id/address_text"
+        android:inputType="textNoSuggestions" />
+    -->
+
+    <WebView
+        android:id="@+id/map_view"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_below="@id/location_label" />
+
+    <!--
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:orientation="horizontal" >
+
+        <Button
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:onClick="onClickDoneButton"
+            android:text="@string/done" />
+
+        <Button
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:onClick="onClickCancelButton"
+            android:text="@string/cancel" />
+    </LinearLayout>
+    -->
+
+</RelativeLayout>

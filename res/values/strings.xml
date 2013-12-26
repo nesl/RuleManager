@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">RuleManager</string>
+    <string name="action_settings">Settings</string>
+    <string name="app_title">Rule Manager</string>
+    <string name="username">Username: </string>
+    <string name="username_hint">Enter your username</string>
+    <string name="password">Password: </string>
+    <string name="password_hint">Enter your password</string>
+    <string name="password_confirm">Confirm password: </string>
+    <string name="login">Login</string>
+    <string name="add_new_rule">+ Add a new rule</string>
+    <string name="manage_rules">Manage rules</string>
+    <string name="manage_location_labels">Location Labels</string>
+    <string name="manage_time_labels">Time Labels</string>
+    <string name="add_new_location_label">+ Add a new location label</string>
+    <string name="add_new_time_label">+ Add a new time label</string>
+    <string name="add_new">+</string>
+    <string name="add_new_label">+ Add a new label</string>
+    <string name="done">Done</string>
+    <string name="cancel">Cancel</string>
+    <string name="conflict_rule_msg">Conflicting rules detected!\nPlease select Menu -> Manage rules, and resolve conflicting rules.</string>
+
+    <string-array name="repeat_types">
+        <item>Weekly</item>
+        <item>Every weekday (Mon to Fri)</item>
+        <item>Every weekend (Sat to Sun)</item>
+        <item>Every Mon, Wed, and Fri</item>
+        <item>Every Tue and Thu</item>
+        <item>Monthly</item>
+    </string-array>
+    
+    <string-array name="label_context_menu">
+        <item>Edit</item>
+        <item>Delete</item>
+    </string-array>
+    
+</resources>

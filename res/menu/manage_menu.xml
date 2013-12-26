@@ -1,0 +1,16 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/manage_rules"
+        android:orderInCategory="100"
+        android:title="@string/manage_rules"/>
+    <item
+        android:id="@+id/manage_location_labels"
+        android:orderInCategory="100"
+        android:title="@string/manage_location_labels"/>
+    <item
+        android:id="@+id/manage_time_labels"
+        android:orderInCategory="100"
+        android:title="@string/manage_time_labels"/>
+
+</menu>
