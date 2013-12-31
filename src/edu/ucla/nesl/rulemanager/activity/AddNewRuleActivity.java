@@ -413,7 +413,7 @@ public class AddNewRuleActivity extends Activity {
 	}
 
 	private boolean isConflictRules(List<Rule> rules) {
-		List<String> timeLabels = timeLabelDataSource.getLabelNamesWithOther();
+		/*List<String> timeLabels = timeLabelDataSource.getLabelNamesWithOther();
 		List<String> locationLabels = locationLabelDataSource.getLabelNamesWithOther();
 		List<String> sensorNames = Arrays.asList(Tools.getSensorNames());
 		
@@ -436,7 +436,7 @@ public class AddNewRuleActivity extends Activity {
 			else 
 				Tools.showAlertDialog(this, "Error", "Your rule conflicts with the following rules:\n" + summaryText);
 			return true;
-		} 
+		} */
 		return false;
 	}
 

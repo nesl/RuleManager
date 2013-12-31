@@ -1,9 +1,18 @@
 package edu.ucla.nesl.rulemanager.db.model;
 
+import java.nio.channels.OverlappingFileLockException;
+
 public class LocationLabel extends Label {
 	
 	private static final int EARTH_METERS = 6367000;
-	
+
+	public static final int INVALID = -1;
+	public static final int NON_OVERLAP = 0;
+	public static final int EXACTLY_SAME = 1;
+	public static final int PARTIAL_OVERLAP = 2;
+	public static final int SUBSET = 3;
+	public static final int SUPERSET = 4;
+
 	protected double latitude;
 	protected double longitude;
 	protected double radius;
@@ -41,15 +50,29 @@ public class LocationLabel extends Label {
 		return "lat: " + latitude + ", lon: " + longitude + ", radius: " + String.format("%.1f m", radius);
 	}
 	
-	public boolean isOverlap(LocationLabel anotherLocation) {
+	public int checkOverlap(LocationLabel anotherLocation) {
 		double r1 = this.getRadius();
 		double r2 = anotherLocation.getRadius();
 		double dist = getDistance(anotherLocation);
 		
-		if (dist < r1 + r2) {
-			return true;
+		if (this.getLatitude() == anotherLocation.getLatitude() 
+				&& this.getLongitude() == anotherLocation.getLongitude() 
+				&& this.getRadius() == anotherLocation.getRadius()) {
+			return EXACTLY_SAME;
+		} else if (dist > (r1 + r2)) {
+			return NON_OVERLAP;
+		} else if (dist <= Math.abs(r1 - r2)) {
+			if (r1 > r2) {
+				return SUPERSET;
+			} else if (r1 < r2){
+				return SUBSET;
+			} else {
+				assert false;
+				return INVALID;
+			}
+		} else {
+			return PARTIAL_OVERLAP;
 		}
-		return false;
 	}
 	
 	public double getDistance(LocationLabel anotherLocation) {

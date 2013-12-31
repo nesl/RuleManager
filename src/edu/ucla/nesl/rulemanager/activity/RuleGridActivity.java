@@ -24,6 +24,7 @@ import android.widget.TextView;
 import edu.ucla.nesl.rulemanager.Const;
 import edu.ucla.nesl.rulemanager.R;
 import edu.ucla.nesl.rulemanager.Tools;
+import edu.ucla.nesl.rulemanager.Tools.TableDataResult;
 import edu.ucla.nesl.rulemanager.db.LocationLabelDataSource;
 import edu.ucla.nesl.rulemanager.db.RuleDataSource;
 import edu.ucla.nesl.rulemanager.db.TimeLabelDataSource;
@@ -98,10 +99,8 @@ public class RuleGridActivity extends TabActivity {
 			isNoRules = true;
 		} else {
 			isNoRules = false;
-			tableData = Tools.prepareTableData(sensorNames, timeLabels, locationLabels, rules).tableData;
-			if (tableData == null) {
-				Tools.showAlertDialog(this, "Error", getResources().getString(R.string.conflict_rule_msg));
-			}
+			TableDataResult result = Tools.prepareTableData(sensorNames, timeLabels, locationLabels, rules, timeLabelDataSource.getTimeLabels(), locationLabelDataSource.getLocationLabels());
+			tableData = result.tableData;
 		}
 		
 		locationLabels.add(getString(R.string.add_new));

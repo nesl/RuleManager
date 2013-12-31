@@ -1,19 +1,21 @@
 package edu.ucla.nesl.rulemanager;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
 
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.view.View;
 import android.widget.Toast;
 import edu.ucla.nesl.rulemanager.data.RuleGridElement;
+import edu.ucla.nesl.rulemanager.db.model.LocationLabel;
 import edu.ucla.nesl.rulemanager.db.model.Rule;
+import edu.ucla.nesl.rulemanager.db.model.TimeLabel;
 
 public class Tools {
 
@@ -51,16 +53,18 @@ public class Tools {
 
 	public static class TableDataResult {
 		public Map<String, MultiKeyMap> tableData;
-		public List<Integer> conflictRuleIDs; 
+		public Map<Integer, Set<Integer>> conflictMap; 
 	}
 
 	public static TableDataResult prepareTableData(
 			List<String> sensorNames, List<String> timeLabels,
-			List<String> locationLabels, List<Rule> rules) {
+			List<String> locationLabels, List<Rule> rules,
+			List<TimeLabel> timeLabelObjs, List<LocationLabel> locationLabelObjs) {
 
 		TableDataResult ret = new TableDataResult();
 
 		Map<String, MultiKeyMap> tableData = new HashMap<String, MultiKeyMap>();
+		Map<Integer, Set<Integer>> conflictMap = new HashMap<Integer, Set<Integer>>();
 
 		for (String sensor : sensorNames) {
 			MultiKeyMap mkMap = new MultiKeyMap();
@@ -73,104 +77,249 @@ public class Tools {
 			String sensor = rule.getData();
 			if (sensor.equalsIgnoreCase(Const.ALL)) {
 				for (MultiKeyMap mkMap : tableData.values()) {
-					List<Integer> conflictRuleIDs = updateMkMap(mkMap, timeLabels, locationLabels, timeLabel, locationLabel, rule);
-					if (conflictRuleIDs != null) {
-						ret.conflictRuleIDs = conflictRuleIDs;
-						return ret;
-					}
+					updateMkMap(mkMap, conflictMap, timeLabels, locationLabels, timeLabel, locationLabel, rule, timeLabelObjs, locationLabelObjs);
 				}
 			} else {
 				MultiKeyMap mkMap = tableData.get(sensor);
-				List<Integer> conflictRuleIDs = updateMkMap(mkMap, timeLabels, locationLabels, timeLabel, locationLabel, rule);
-				if (conflictRuleIDs != null) {
-					ret.conflictRuleIDs = conflictRuleIDs;
-					return ret;
-				}
+				updateMkMap(mkMap, conflictMap, timeLabels, locationLabels, timeLabel, locationLabel, rule, timeLabelObjs, locationLabelObjs);
 			}
 		}
 
 		ret.tableData = tableData;
-		ret.conflictRuleIDs = null;
+		ret.conflictMap = conflictMap;
 
 		return ret;
 	}
 
-	private static List<Integer> updateMkMap(MultiKeyMap mkMap, List<String> timeLabels, List<String> locationLabels, String timeLabel, String locationLabel, Rule rule) {
+	private static void updateMkMap(MultiKeyMap mkMap, Map<Integer, Set<Integer>> conflictMap, List<String> timeLabels, List<String> locationLabels, String timeLabel, String locationLabel, Rule rule, List<TimeLabel> timeLabelObjs, List<LocationLabel> locationLabelObjs) {
+
 		if (timeLabel == null && locationLabel == null) {
 			for (String time : timeLabels) {
 				for (String location : locationLabels) {
-					List<Integer> conflictRuleIDs = updateMkMapForRule(mkMap, time, location, rule);
-					if (conflictRuleIDs != null) {
-						return conflictRuleIDs;
-					}
+					updateMkMapForRule(mkMap, conflictMap, time, location, rule);
 				}
-			}
+			}			
 		} else if (timeLabel == null && locationLabel != null) {
 			for (String time : timeLabels) {
-				List<Integer> conflictRuleIDs = updateMkMapForRule(mkMap, time, locationLabel, rule);
-				if (conflictRuleIDs != null) {
-					return conflictRuleIDs;
+				updateMkMapForRule(mkMap, conflictMap, time, locationLabel, rule);
+			}
+
+			// update for overlapping labels
+			LocationLabel curLabel = null;
+			for (LocationLabel loc : locationLabelObjs) {
+				if (loc.getLabelName().equals(locationLabel)) {
+					curLabel = loc;
+				}
+			}
+			for (LocationLabel loc : locationLabelObjs) {
+				if (loc == curLabel) {
+					continue;
+				}
+				switch (curLabel.checkOverlap(loc)) {
+				case LocationLabel.NON_OVERLAP:
+					continue;
+				case LocationLabel.EXACTLY_SAME:
+				case LocationLabel.SUPERSET:
+					for (String time : timeLabels) {
+						updateMkMapForRule(mkMap, conflictMap, time, loc.getLabelName(), rule);
+					}
+					break;
+				case LocationLabel.PARTIAL_OVERLAP:
+				case LocationLabel.SUBSET:
+					for (String time : timeLabels) {
+						updateMkMapPartialForRule(mkMap, conflictMap, time, loc.getLabelName(), rule);
+					}
+					break;
 				}
 			}
 		} else if (timeLabel != null && locationLabel == null) {
 			for (String location : locationLabels) {
-				List<Integer> conflictRuleIDs = updateMkMapForRule(mkMap, timeLabel, location, rule);
-				if (conflictRuleIDs != null) {
-					return conflictRuleIDs;
+				updateMkMapForRule(mkMap, conflictMap, timeLabel, location, rule);
+			}
+
+			// update for overlapping labels
+			TimeLabel curLabel = null;
+			for (TimeLabel time : timeLabelObjs) {
+				if (time.getLabelName().equals(timeLabel)) {
+					curLabel = time;
+				}
+			}
+			for (TimeLabel time : timeLabelObjs) {
+				if (time == curLabel) {
+					continue;
+				}
+				switch (curLabel.checkOverlap(time)) {
+				case TimeLabel.NON_OVERLAP:
+					continue;
+				case TimeLabel.EXACTLY_SAME:
+				case TimeLabel.SUPERSET:
+					for (String loc : locationLabels) {
+						updateMkMapForRule(mkMap, conflictMap, time.getLabelName(), loc, rule);
+					}
+					break;
+				case TimeLabel.PARTIAL_OVERLAP:
+				case TimeLabel.SUBSET:
+					for (String loc : locationLabels) {
+						updateMkMapPartialForRule(mkMap, conflictMap, time.getLabelName(), loc, rule);
+					}
+					break;
 				}
 			}
 		} else if (timeLabel != null && locationLabel != null) {
-			List<Integer> conflictRuleIDs = updateMkMapForRule(mkMap, timeLabel, locationLabel, rule);
-			if (conflictRuleIDs != null) {
-				return conflictRuleIDs;
+			updateMkMapForRule(mkMap, conflictMap, timeLabel, locationLabel, rule);
+
+			// update for overlapping labels
+			TimeLabel curTimeLabel = null;
+			for (TimeLabel time : timeLabelObjs) {
+				if (time.getLabelName().equals(timeLabel)) {
+					curTimeLabel = time;
+				}
+			}
+			LocationLabel curLocationLabel = null;
+			for (LocationLabel loc : locationLabelObjs) {
+				if (loc.getLabelName().equals(locationLabel)) {
+					curLocationLabel = loc;
+				}
+			}
+
+			for (LocationLabel loc : locationLabelObjs) {
+				for (TimeLabel time : timeLabelObjs) {
+					if (curTimeLabel == time && curLocationLabel == loc) {
+						continue;
+					} else if (curTimeLabel == time && curLocationLabel != loc) {
+						switch (curLocationLabel.checkOverlap(loc)) {
+						case LocationLabel.NON_OVERLAP:
+							continue;
+						case LocationLabel.EXACTLY_SAME:
+						case LocationLabel.SUPERSET:
+							updateMkMapForRule(mkMap, conflictMap, time.getLabelName(), loc.getLabelName(), rule);
+							break;
+						case LocationLabel.PARTIAL_OVERLAP:
+						case LocationLabel.SUBSET:
+							updateMkMapPartialForRule(mkMap, conflictMap, time.getLabelName(), loc.getLabelName(), rule);
+							break;
+						}
+					} else if (curTimeLabel != time && curLocationLabel == loc) {
+						switch (curTimeLabel.checkOverlap(time)) {
+						case TimeLabel.NON_OVERLAP:
+							continue;
+						case TimeLabel.EXACTLY_SAME:
+						case TimeLabel.SUPERSET:
+							updateMkMapForRule(mkMap, conflictMap, time.getLabelName(), loc.getLabelName(), rule);
+							break;
+						case TimeLabel.PARTIAL_OVERLAP:
+						case TimeLabel.SUBSET:
+							updateMkMapPartialForRule(mkMap, conflictMap, time.getLabelName(), loc.getLabelName(), rule);
+							break;
+						}
+					} else {  // if (curTimeLabel != time && curLocationLabel != loc)
+						int timeOverlap = curTimeLabel.checkOverlap(time);
+						int locationOverlap = curLocationLabel.checkOverlap(loc);
+
+						if (timeOverlap != TimeLabel.NON_OVERLAP && locationOverlap != LocationLabel.NON_OVERLAP) {
+							if ( (timeOverlap == TimeLabel.EXACTLY_SAME || timeOverlap == TimeLabel.SUPERSET)
+									&& (locationOverlap == LocationLabel.EXACTLY_SAME || locationOverlap == LocationLabel.SUPERSET) ) {
+								updateMkMapForRule(mkMap, conflictMap, time.getLabelName(), loc.getLabelName(), rule);
+							} else {
+								updateMkMapPartialForRule(mkMap, conflictMap, time.getLabelName(), loc.getLabelName(), rule);
+							}
+						} else {
+							continue;
+						}
+					}
+				}
 			}
 		}
-		return null;
 	}
 
-	private static List<Integer> updateMkMapForRule(MultiKeyMap mkMap, String timeLabel, String locationLabel, Rule rule) {
+	private static void updateMkMapPartialForRule(MultiKeyMap mkMap, Map<Integer, Set<Integer>> conflictMap, String timeLabel, String locationLabel, Rule rule) {
+
 		RuleGridElement elem = (RuleGridElement)mkMap.get(timeLabel, locationLabel);
 		if (elem == null) {
 			elem = new RuleGridElement();
 		}
+
 		if (rule.getAction().equalsIgnoreCase(Const.SHARE)) {
-			if (elem.deniedList.size() > 0 && elem.deniedList.contains(Const.EVERYONE)) {
-				int id = elem.deniedRuleIDs.get(elem.deniedList.indexOf(Const.EVERYONE));
-				List<Integer> ids = new ArrayList<Integer>();
-				ids.add(id);
-				return ids;
-			} else if (elem.deniedList.size() > 0 && elem.deniedList.contains(rule.getConsumer())) {
-				int id = elem.deniedRuleIDs.get(elem.deniedList.indexOf(rule.getConsumer()));
-				List<Integer> ids = new ArrayList<Integer>();
-				ids.add(id);
-				return ids;
-			} else if (elem.deniedList.size() > 0 && rule.getConsumer().equalsIgnoreCase(Const.EVERYONE)) {
-				return elem.deniedRuleIDs;
-			}
-			if (!elem.allowedList.contains(Const.EVERYONE) && !elem.allowedList.contains(rule.getConsumer())) {
-				elem.addAllowed(rule.getConsumer(), rule.getId());
-			}
+			elem.addPartialAllowed(rule.getConsumer());
 		} else if (rule.getAction().equalsIgnoreCase(Const.NOT_SHARE)) {
-			if (elem.allowedList.size() > 0 && elem.allowedList.contains(Const.EVERYONE)) {
-				int id = elem.allowedRuleIDs.get(elem.allowedList.indexOf(Const.EVERYONE));
-				List<Integer> ids = new ArrayList<Integer>();
-				ids.add(id);
-				return ids;
-			} else if (elem.allowedList.size() > 0 && elem.allowedList.contains(rule.getConsumer())) {
-				int id = elem.allowedRuleIDs.get(elem.allowedList.indexOf(rule.getConsumer()));
-				List<Integer> ids = new ArrayList<Integer>();
-				ids.add(id);
-				return ids;
-			} else if (elem.allowedList.size() > 0 && rule.getConsumer().equalsIgnoreCase(Const.EVERYONE)) {
-				return elem.allowedRuleIDs;
-			}
-			if (!elem.deniedList.contains(Const.EVERYONE) && !elem.deniedList.contains(rule.getConsumer())) {
-				elem.addDenied(rule.getConsumer(), rule.getId());
-			}
+			elem.addPartialDenied(rule.getConsumer());
 		} else {
 			throw new UnsupportedOperationException("Invalid rule action: " + rule.getAction());
 		}
+		
 		mkMap.put(timeLabel, locationLabel, elem);
-		return null;
+	}
+
+	private static void updateMkMapForRule(MultiKeyMap mkMap, Map<Integer, Set<Integer>> conflictMap, String timeLabel, String locationLabel, Rule rule) {
+
+		RuleGridElement elem = (RuleGridElement)mkMap.get(timeLabel, locationLabel);
+		if (elem == null) {
+			elem = new RuleGridElement();
+		}
+
+		if (rule.getAction().equalsIgnoreCase(Const.SHARE)) {
+
+			if (elem.deniedList.size() > 0) {
+				if (rule.getConsumer().equalsIgnoreCase(Const.EVERYONE)) {
+					// conflict with every denied rules
+					Set<Integer> set = conflictMap.get(rule.getId());
+					if (set == null) {
+						set = new HashSet<Integer>();
+					}
+					set.addAll(elem.deniedRuleIDs);
+					conflictMap.put(rule.getId(), set);
+				} else {					
+					for (int i = 0; i < elem.deniedList.size(); i++) {
+						String denied = elem.deniedList.get(i);
+						int id = elem.deniedRuleIDs.get(i);
+						if (denied.equalsIgnoreCase(Const.EVERYONE) || denied.equalsIgnoreCase(rule.getConsumer())) {
+							Set<Integer> set = conflictMap.get(rule.getId());
+							if (set == null) {
+								set = new HashSet<Integer>();
+							}
+							set.add(id);
+							conflictMap.put(rule.getId(), set);
+						}
+					}
+				}
+			}
+
+			elem.addAllowed(rule.getConsumer(), rule.getId());
+
+		} else if (rule.getAction().equalsIgnoreCase(Const.NOT_SHARE)) {
+
+			if (elem.allowedList.size() > 0) {
+				if (rule.getConsumer().equalsIgnoreCase(Const.EVERYONE)) {
+					// conflict with every allow rules
+					Set<Integer> set = conflictMap.get(rule.getId());
+					if (set == null) {
+						set = new HashSet<Integer>();
+					}
+					set.addAll(elem.allowedRuleIDs);
+					conflictMap.put(rule.getId(), set);
+				} else {
+					for (int i = 0; i < elem.allowedList.size(); i++) {
+						String allowed = elem.allowedList.get(i);
+						int id = elem.allowedRuleIDs.get(i);
+						if (allowed.equalsIgnoreCase(Const.EVERYONE) || allowed.equalsIgnoreCase(rule.getConsumer())) {
+							Set<Integer> set = conflictMap.get(rule.getId());
+							if (set == null) {
+								set = new HashSet<Integer>();
+							}
+							set.add(id);
+							conflictMap.put(rule.getId(), set);
+						}
+					}
+				}
+			}
+
+			elem.addDenied(rule.getConsumer(), rule.getId());
+
+		} else {
+			throw new UnsupportedOperationException("Invalid rule action: " + rule.getAction());
+		}
+
+		mkMap.put(timeLabel, locationLabel, elem);
+
 	}
 }

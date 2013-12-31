@@ -8,7 +8,6 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 
 import org.joda.time.DateTime;
-import org.joda.time.Interval;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
@@ -16,7 +15,14 @@ public class TimeLabel extends Label {
 
 	public static final String REPEAT_TYPE_WEEKLY = "weekly";
 	public static final String REPEAT_TYPE_MONTHLY = "monthly";
-
+	
+	public static final int INVALID = -1;
+	public static final int NON_OVERLAP = 0;
+	public static final int EXACTLY_SAME = 1;
+	public static final int PARTIAL_OVERLAP = 2;
+	public static final int SUBSET = 3;
+	public static final int SUPERSET = 4;
+	
 	protected String fromDate;
 	protected String fromTime;
 	protected String toDate;
@@ -198,15 +204,21 @@ public class TimeLabel extends Label {
 		return null;
 	}
 
-	public boolean isOverlap(TimeLabel anotherTime) {
+	/* 0: non-overlap
+	 * 1: exactly same
+	 * 2: partial overlap
+	 * 3: this is included in anotherTime
+	 * 4: this includes anotherTime
+	 */
+	public int checkOverlap(TimeLabel anotherTime) {
 		if (isBothRepeat(this, anotherTime)) {
 			if (isAtLeastOneAllDay(this, anotherTime)) {
-				return isRepeatOverlaps(this, anotherTime);
+				return checkRepeatOverlaps(this, anotherTime);
 			} else { // both not all day
 				if (isTimeOverlaps(this.getFromTime(), this.getToTime(), anotherTime.getFromTime(), anotherTime.getToTime())) {
-					return isRepeatOverlaps(this, anotherTime);
+					return checkRepeatOverlaps(this, anotherTime);
 				} else {
-					return false;
+					return NON_OVERLAP;
 				}
 			}
 		} else if (isOnlyOneRepeat(this, anotherTime)) {
@@ -218,16 +230,20 @@ public class TimeLabel extends Label {
 				repeat = anotherTime;
 				range = this;
 			}
-			return isRepeatOverlapsRange(repeat, range);
+			if (isRepeatOverlapsRange(repeat, range)) {
+				return PARTIAL_OVERLAP;
+			} else {
+				return NON_OVERLAP;
+			}
 		} else if (!isBothRepeat(this, anotherTime)) {
-			return isRangeOverlaps(this, anotherTime);
+			return checkRangeOverlaps(this, anotherTime);
 		} else {
 			assert false;
 		}
-		return false;
+		return INVALID;
 	}
 
-	private boolean isRangeOverlaps(TimeLabel t1, TimeLabel t2) {
+	private int checkRangeOverlaps(TimeLabel t1, TimeLabel t2) {
 		DateTimeFormatter fmt = DateTimeFormat.forPattern("MM/dd/yyyy hh:mm aa");
 		
 		DateTime t1StartDateTime;
@@ -254,10 +270,17 @@ public class TimeLabel extends Label {
 			t2EndDateTime = t2EndDateTime.plusMillis(1);
 		}
 		
-		Interval t1Interval = new Interval(t1StartDateTime, t1EndDateTime);
+		/*Interval t1Interval = new Interval(t1StartDateTime, t1EndDateTime);
 		Interval t2Interval = new Interval(t2StartDateTime, t2EndDateTime);
 		
-		return t1Interval.overlaps(t2Interval);
+		return t1Interval.overlaps(t2Interval);*/
+		
+		long t1StartMs = t1StartDateTime.getMillis();
+		long t2StartMs = t2StartDateTime.getMillis();
+		long t1EndMs = t1EndDateTime.getMillis();
+		long t2EndMs = t2EndDateTime.getMillis();
+		
+		return checkTimeOverlap(t1StartMs, t1EndMs, t2StartMs, t2EndMs);
 	}
 
 	private boolean isRepeatOverlapsRange(TimeLabel repeat, TimeLabel range) {
@@ -376,62 +399,6 @@ public class TimeLabel extends Label {
 		return false;
 	}
 
-	private boolean isRepeatMonthlyTimeRangeOverlaps(TimeLabel repeat, TimeLabel range) {
-		String startDate = range.getFromDate();
-		String endDate = range.getToDate();
-		DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
-		Date sDate = null;
-		Date eDate = null;
-		try {
-			sDate = df.parse(startDate);
-			eDate = df.parse(endDate);
-		} catch (ParseException e) {
-			e.printStackTrace();
-			assert false;
-		}
-		int startYear = sDate.getYear();
-		int endYear = eDate.getYear();
-		int startMonth = sDate.getMonth();
-		int endMonth = eDate.getMonth();
-		int startDay = sDate.getDate();
-		int endDay = eDate.getDate();
-
-		if (startDay == endDay && startMonth == endMonth && startYear == endYear) {
-			return isTimeOverlaps(repeat.getFromTime(), repeat.getToTime(), range.getFromTime(), range.getToTime());
-		} else if (startDay + 1 == endDay && startMonth == endMonth && startYear == endYear) {
-			int repeatDay = repeat.getRepeatDay();
-			if (repeatDay == startDay) {
-				return isTimeOverlaps(repeat.getFromTime(), repeat.getToTime(), range.getFromTime(), "00:00 PM");
-			} else if (repeatDay == endDay) {
-				return isTimeOverlaps(repeat.getFromTime(), repeat.getToTime(), "00:00 AM", range.getToTime());
-			} else {
-				assert false;
-			}
-		} else if (startMonth == endMonth && startYear == endYear) { 
-			int repeatDay = repeat.getRepeatDay();
-			if (repeatDay == startDay) {
-				return isTimeOverlaps(repeat.getFromTime(), repeat.getToTime(), range.getFromTime(), "00:00 PM");
-			} else if (repeatDay == endDay) {
-				return isTimeOverlaps(repeat.getFromTime(), repeat.getToTime(), "00:00 AM", range.getToTime());
-			} else {
-				assert repeatDay > startDay && repeatDay < endDay;
-				return true;
-			}
-		} else if (startMonth + 1 == endMonth && startYear == endYear && startDay >= endDay) {
-			if (repeatDay == startDay) {
-				return isTimeOverlaps(repeat.getFromTime(), repeat.getToTime(), range.getFromTime(), "00:00 PM");
-			} 
-			if (repeatDay == endDay) {
-				return isTimeOverlaps(repeat.getFromTime(), repeat.getToTime(), "00:00 AM", range.getToTime());
-			}
-			return true;
-		} else {
-			return true;
-		}
-
-		return false;
-	}
-
 	private static boolean isTimeOverlaps(String t1start, String t1end, String t2start, String t2end) {
 
 		long t1StartMs = convertToMillis(t1start);
@@ -490,21 +457,21 @@ public class TimeLabel extends Label {
 		return false;
 	}
 
-	private boolean isRepeatOverlaps(TimeLabel timeLabel, TimeLabel anotherTime) {
-		if (isRepeatMonthlyAndRepeatWeekly(this, anotherTime)) {
-			return true;
-		} else if (isBothRepeatMonthly(this, anotherTime)) {
-			if (this.getRepeatDay() == anotherTime.getRepeatDay()) {
-				return true;
+	private int checkRepeatOverlaps(TimeLabel timeLabel, TimeLabel anotherTime) {
+		if (isRepeatMonthlyAndRepeatWeekly(timeLabel, anotherTime)) {
+			return PARTIAL_OVERLAP;
+		} else if (isBothRepeatMonthly(timeLabel, anotherTime)) {
+			if (timeLabel.getRepeatDay() == anotherTime.getRepeatDay()) {
+				return checkBasedOnTimeOnly(timeLabel, anotherTime);
+			} else {
+				return NON_OVERLAP;
 			}
-		} else if (isBothRepeatWeekly(this, anotherTime)) {
-			if (isRepeatWeekdayOverlap(this, anotherTime)) {
-				return true;
-			}
+		} else if (isBothRepeatWeekly(timeLabel, anotherTime)) {
+			return isRepeatWeekdayOverlap(timeLabel, anotherTime);
 		} else {
 			assert false;
-		}
-		return false;
+			return INVALID;
+		}		
 	}
 
 	private boolean isAtLeastOneAllDay(TimeLabel timeLabel, TimeLabel anotherTime) {
@@ -514,15 +481,128 @@ public class TimeLabel extends Label {
 		return false;
 	}
 
-	private boolean isRepeatWeekdayOverlap(TimeLabel timeLabel, TimeLabel anotherTime) {
+	private int isRepeatWeekdayOverlap(TimeLabel timeLabel, TimeLabel anotherTime) {
 		boolean[] t1WeekDays = getWeekDaysArray(timeLabel);
 		boolean[] t2WeekDays = getWeekDaysArray(anotherTime);
+		
+		// if weekdays are same
+		boolean isSame = true;
 		for (int i = 0; i < 7; i++) {
-			if (t1WeekDays[i] && t2WeekDays[i]) {
-				return true;
+			if (t1WeekDays[i] != t2WeekDays[i]) {
+				isSame = false;
+				break;
 			}
 		}
-		return false;
+		if (isSame) {
+			return checkBasedOnTimeOnly(timeLabel, anotherTime);
+		}
+		
+		// check if overlap
+		boolean isOverlap = false;
+		for (int i = 0; i < 7; i++) {
+			if (t1WeekDays[i] && t2WeekDays[i]) {
+				isOverlap = true;
+			}
+		}
+
+		if (isOverlap) {
+			// if superset
+			boolean isSuperset = true;
+			for (int i = 0; i < 7; i++) {
+				if (!t1WeekDays[i] && t2WeekDays[i]) {
+					isSuperset = false;
+					break;
+				}
+			}
+			// if subset
+			boolean isSubset = true;
+			for (int i = 0; i < 7; i++) {
+				if (t1WeekDays[i] && !t2WeekDays[i]) {
+					isSubset = false;
+				}
+			}
+			
+			if (isSuperset && !isSubset) {
+				if (timeLabel.isAllDay()) {
+					return SUPERSET;
+				} else if (!timeLabel.isAllDay() && !anotherTime.isAllDay()) {
+					int result = checkTimeOverlap(timeLabel, anotherTime);
+					if (result == EXACTLY_SAME || result == SUPERSET) {
+						return SUPERSET;
+					} else {
+						return PARTIAL_OVERLAP;
+					}
+				} else {
+					return PARTIAL_OVERLAP;
+				}
+			} else if (!isSuperset && isSubset) {
+				if (anotherTime.isAllDay()) {
+					return SUBSET;
+				} else if (!timeLabel.isAllDay() && !anotherTime.isAllDay()) {
+					int result = checkTimeOverlap(timeLabel, anotherTime);
+					if (result == EXACTLY_SAME || result == SUBSET) {
+						return SUBSET;
+					} else {
+						return PARTIAL_OVERLAP;
+					}
+				} else {
+					return PARTIAL_OVERLAP;
+				}
+			} else if (!isSuperset && !isSubset) {
+				// if weekdays are partially overlap
+				return PARTIAL_OVERLAP;
+			} else {
+				assert false;
+				return INVALID;
+			}	
+		} else {
+			// weekdays are exclusive
+			return NON_OVERLAP;
+		}
+	}
+
+	private int checkTimeOverlap(TimeLabel timeLabel, TimeLabel anotherTime) {
+		String t1start = timeLabel.getFromTime();
+		String t1end = timeLabel.getToTime();
+		String t2start = anotherTime.getFromTime();
+		String t2end = anotherTime.getToTime();
+		
+		long t1StartMs = convertToMillis(t1start);
+		long t1EndMs = convertToMillis(t1end);
+		long t2StartMs = convertToMillis(t2start);
+		long t2EndMs = convertToMillis(t2end);
+
+		return checkTimeOverlap(t1StartMs, t1EndMs, t2StartMs, t2EndMs);
+	}
+
+	private int checkTimeOverlap(long t1StartMs, long t1EndMs, long t2StartMs, long t2EndMs) {
+		if (t1StartMs == t2StartMs && t1EndMs == t2EndMs) {
+			return EXACTLY_SAME;
+		} else if (t1StartMs < t2StartMs && t1EndMs > t2EndMs) {
+			return SUPERSET;
+		} else if (t1StartMs > t2StartMs && t1EndMs < t2EndMs) {
+			return SUBSET;
+		} else if ((t1StartMs < t2StartMs && t1EndMs < t2StartMs)
+				|| (t1StartMs > t2EndMs && t1EndMs > t2EndMs) ) {
+			return NON_OVERLAP;
+		} else {
+			return PARTIAL_OVERLAP;
+		}
+	}
+
+	private int checkBasedOnTimeOnly(TimeLabel timeLabel, TimeLabel anotherTime) {
+		if (timeLabel.isAllDay() && anotherTime.isAllDay()) {
+			return EXACTLY_SAME;
+		} else if (timeLabel.isAllDay() && !anotherTime.isAllDay()) {
+			return SUPERSET;
+		} else if (!timeLabel.isAllDay() && anotherTime.isAllDay()) {
+			return SUBSET;
+		} else if (!timeLabel.isAllDay() && !anotherTime.isAllDay()) {
+			return checkTimeOverlap(timeLabel, anotherTime);
+		} else {
+			assert false;
+		}
+		return INVALID;
 	}
 
 	private boolean[] getWeekDaysArray(TimeLabel timeLabel) {

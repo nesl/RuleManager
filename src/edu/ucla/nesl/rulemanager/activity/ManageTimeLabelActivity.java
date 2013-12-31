@@ -54,8 +54,8 @@ public class ManageTimeLabelActivity extends Activity {
 
 		// Test Code
 		if (labels.size() == 2) {
-			boolean isOverlap = labels.get(0).isOverlap(labels.get(1));
-			Tools.showAlertDialog(this, "Test", "isOverlap: " + isOverlap);		
+			int checkOverlap = labels.get(0).checkOverlap(labels.get(1));
+			Tools.showAlertDialog(this, "Test", "checkOverlap: " + checkOverlap);		
 		}
 		super.onResume();
 	}

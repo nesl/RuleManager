@@ -2,7 +2,9 @@ package edu.ucla.nesl.rulemanager.uielement;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
 
@@ -383,25 +385,133 @@ public class GridRuleTableLayout extends RelativeLayout {
 		return textView;
 	}
 
+	private View createTextViewForTableDCell(final String text) {
+		TextView textView = new TextView(this.context);
+		textView.setBackgroundColor(TABLE_CELL_BACKGROUND);
+		textView.setGravity(Gravity.CENTER);
+		textView.setPadding(5, 5, 5, 5);
+		textView.setText(text);
+		textView.setClickable(true);
+		textView.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				AlertDialog dialog = new AlertDialog.Builder(context).create();
+				dialog.setMessage(text);
+				dialog.setButton("OK", new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						dialog.dismiss();
+					}
+				});
+				dialog.show();
+			}
+		});
+		return textView;
+	}
+
+	
 	private View createViewForTableDCell(final String leftHeader, final String topHeader, RuleGridElement elem){
+	
+		//return createDebugViewForTableDCell(leftHeader, topHeader, elem);
+		
 		if (elem == null) {
 			return createDenyEveryoneTableCell();
 		}
 		
-		String allowText = "";
-		String denyText = "";
-		if (elem.allowedList.size() > 0) {
-			for (String allow : elem.allowedList) {
-				allowText += allow + ", ";
-			}
-			allowText = allowText.substring(0, allowText.length() - 2);
+		// prepare sets
+		Set<String> everyone = new HashSet<String>();
+		everyone.addAll(Arrays.asList(Tools.getConsumerNames()));
+		Set<String> allowed = new HashSet<String>();
+		allowed.addAll(elem.allowedList);
+		Set<String> denied = new HashSet<String>();
+		denied.addAll(elem.deniedList);
+		Set<String> partialAllowed = new HashSet<String>();
+		partialAllowed.addAll(elem.partialAllowedList);
+		Set<String> partialDenied = new HashSet<String>();
+		partialDenied.addAll(elem.partialDeniedList);
+
+		// blow up everyone.
+		if (allowed.contains(Const.EVERYONE)) {
+			allowed.remove(Const.EVERYONE);
+			allowed.addAll(everyone);
+		}
+		if (denied.contains(Const.EVERYONE)) {
+			denied.remove(Const.EVERYONE);
+			denied.addAll(everyone);
+		}
+		if (partialAllowed.contains(Const.EVERYONE)) {
+			partialAllowed.remove(Const.EVERYONE);
+			partialAllowed.addAll(everyone);
+		}
+		if (partialDenied.contains(Const.EVERYONE)) {
+			partialDenied.remove(Const.EVERYONE);
+			partialDenied.addAll(everyone);
 		}
 
-		if (elem.deniedList.size() > 0) {
-			for (String deny : elem.deniedList){
+		// adjust sets
+		partialAllowed.removeAll(allowed);
+		partialDenied.removeAll(denied);
+		allowed.removeAll(denied);
+		partialAllowed.removeAll(denied);
+		if (denied.size() == 0) {
+			Set<String> tempSet = new HashSet<String>();
+			tempSet.addAll(everyone);
+			tempSet.removeAll(allowed);
+			denied.addAll(tempSet);
+		}
+		if (allowed.size() == 0) {
+			denied.clear();
+			denied.addAll(everyone);
+		}
+		
+		// convert back to everyone
+		if (allowed.containsAll(everyone)) {
+			allowed.clear();
+			allowed.add(Const.EVERYONE);
+		}
+		if (denied.containsAll(everyone)) {
+			denied.clear();
+			denied.add(Const.EVERYONE);
+		}
+		if (partialAllowed.containsAll(everyone)) {
+			partialAllowed.clear();
+			partialAllowed.add(Const.EVERYONE);
+		}
+		if (partialDenied.containsAll(everyone)) {
+			partialDenied.clear();
+			partialDenied.add(Const.EVERYONE);
+		}
+
+		// Generate text
+		String allowText = "";
+		String denyText = "";
+		
+		if (allowed.size() > 0) {
+			for (String allow : allowed) {
+				allowText += allow + ", ";
+			}
+			allowText = allowText.substring(0, allowText.length() - 2) + " ";
+		}
+		if (partialAllowed.size() > 0) {
+			allowText += "(";
+			for (String allow : partialAllowed) {
+				allowText += allow + ", ";
+			}
+			allowText = allowText.substring(0, allowText.length() - 2) + ")";
+		}
+
+		if (denied.size() > 0) {
+			for (String deny : denied) {
 				denyText += deny + ", ";
 			}
-			denyText = denyText.substring(0, denyText.length() - 2);
+			denyText = denyText.substring(0, denyText.length() - 2) + " ";
+		}
+		if (partialDenied.size() > 0) {
+			denyText += "(";
+			for (String deny : partialDenied) {
+				denyText += deny + ", ";
+			}
+			denyText = denyText.substring(0, denyText.length() - 2) + ")";
 		}
 
 		View retView = null;
@@ -410,30 +520,56 @@ public class GridRuleTableLayout extends RelativeLayout {
 			retView = createDenyEveryoneTableCell();
 		} else if (allowText.length() <= 0 && denyText.length() > 0) {
 			retView = createDenyEveryoneTableCell();
-		} else if (allowText.length() > 0) {
-			if (elem.allowedList.contains(Const.EVERYONE) || isEveryoneAllowed(elem.allowedList)) {
-				retView = createAllowDenyCellView(Const.EVERYONE, true);
-			} else {
-				List<String> deniedList = new ArrayList<String>();
-				deniedList.addAll(Arrays.asList(Tools.getConsumerNames()));
-				for (String allowed : elem.allowedList) {
-					deniedList.remove(allowed);
-				}
-				
-				denyText = "";
-				for (String deny : deniedList){
-					denyText += deny + ", ";
-				}
-				if (denyText.length() > 0) {
-					denyText = denyText.substring(0, denyText.length() - 2);
-					retView = createAllowDenyCombinedView(allowText, denyText);
-				} else {
-					retView = createAllowDenyCellView(allowText, true);
-				}
-			}
+		} else if (allowText.length() > 0 && denyText.length() <= 0) {
+			return createAllowDenyCellView(allowText, true);
+		} else if (allowText.length() > 0 && denyText.length() > 0) {
+			retView = createAllowDenyCombinedView(allowText, denyText);
+		} else {
+			assert false;
 		}
 		
 		return retView;
+	}
+
+	private View createDebugViewForTableDCell(String leftHeader, String topHeader, RuleGridElement elem) {
+		
+		if (elem == null) {
+			return createTextViewForTableDCell("null");
+		} else {
+			String allowText = "";
+			String denyText = "";
+			if (elem.allowedList.size() > 0) {
+				for (String allow : elem.allowedList) {
+					allowText += allow + ", ";
+				}
+				allowText = allowText.substring(0, allowText.length() - 2);
+			}
+
+			if (elem.deniedList.size() > 0) {
+				for (String deny : elem.deniedList){
+					denyText += deny + ", ";
+				}
+				denyText = denyText.substring(0, denyText.length() - 2);
+			}
+			
+			String paText = "";
+			if (elem.partialAllowedList.size() > 0) {
+				for (String pa : elem.partialAllowedList) {
+					paText += pa + ", ";
+				}
+				paText = paText.substring(0, paText.length() - 2);
+			}
+			
+			String pdText = "";
+			if (elem.partialDeniedList.size() > 0) {
+				for (String pd : elem.partialDeniedList) {
+					pdText += pd + ", ";
+				}
+				pdText = pdText.substring(0, pdText.length() - 2);
+			}
+			String text = "A: " + allowText + " (" + paText + ")\nD: " + denyText + " (" + pdText + ")";
+			return createTextViewForTableDCell(text);
+		}
 	}
 
 	private boolean isEveryoneAllowed(List<String> allowedList) {

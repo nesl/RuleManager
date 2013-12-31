@@ -159,7 +159,7 @@ public class RuleListActivity extends Activity {
 			}
 
 			Rule rule = rules.get(position);
-			holder.ruleContent.setText(rule.getSummaryText());
+			holder.ruleContent.setText(rule.getId() + ": " + rule.getSummaryText());
 
 			return convertView;
 		}
