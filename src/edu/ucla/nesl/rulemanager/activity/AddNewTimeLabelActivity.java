@@ -23,6 +23,7 @@ import android.widget.TimePicker;
 import edu.ucla.nesl.rulemanager.Const;
 import edu.ucla.nesl.rulemanager.R;
 import edu.ucla.nesl.rulemanager.Tools;
+import edu.ucla.nesl.rulemanager.db.RuleDataSource;
 import edu.ucla.nesl.rulemanager.db.TimeLabelDataSource;
 import edu.ucla.nesl.rulemanager.db.model.TimeLabel;
 import edu.ucla.nesl.rulemanager.uielement.TimeRepeatDialog;
@@ -30,7 +31,8 @@ import edu.ucla.nesl.rulemanager.uielement.TimeRepeatDialog.TimeRepeatDialogList
 
 public class AddNewTimeLabelActivity extends Activity {
 
-	private TimeLabelDataSource dataSource;
+	private TimeLabelDataSource timeLabelDataSource;
+	private RuleDataSource ruleDataSource;
 
 	private static final int FROM_TIME_DIALOG_ID = 1;
 	private static final int FROM_DATE_DIALOG_ID = 2;
@@ -67,7 +69,8 @@ public class AddNewTimeLabelActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_add_new_time_label);
 
-		dataSource = new TimeLabelDataSource(this);
+		timeLabelDataSource = new TimeLabelDataSource(this);
+		ruleDataSource = new RuleDataSource(this);
 
 		labelEditText = (EditText) findViewById(R.id.time_label);
 		repeatCheckBox = (CheckBox)findViewById(R.id.checkbox_repeat);
@@ -131,13 +134,15 @@ public class AddNewTimeLabelActivity extends Activity {
 
 	@Override
 	protected void onResume() {
-		dataSource.open();
+		timeLabelDataSource.open();
+		ruleDataSource.open();
 		super.onResume();
 	}
 
 	@Override
 	protected void onPause() {
-		dataSource.close();
+		timeLabelDataSource.close();
+		ruleDataSource.close();
 		super.onPause();
 	}
 
@@ -355,7 +360,7 @@ public class AddNewTimeLabelActivity extends Activity {
 		String toDate = this.toDate.getText().toString();
 		String toTime = this.toTime.getText().toString();
 
-		String message;
+		String message = null;
 		try {
 			if (labelName == null || labelName.length() <= 0) {
 				Tools.showAlertDialog(this, "Error", "Please enter label name.");
@@ -371,16 +376,19 @@ public class AddNewTimeLabelActivity extends Activity {
 						return;
 					} else {
 						if (prevLabelName != null) {
-							int result = dataSource.updateTimeLabel(prevLabelName, labelName, fromDate, fromTime, toDate, toTime, isAllDay, isRepeat, repeatType
+							if (!prevLabelName.equals(labelName)) {
+								ruleDataSource.updateTimeLabelName(prevLabelName, labelName);
+							}
+							int result = timeLabelDataSource.updateTimeLabel(prevLabelName, labelName, fromDate, fromTime, toDate, toTime, isAllDay, isRepeat, repeatType
 									, repeatDay, isMon, isTue, isWed, isThu, isFri, isSat, isSun);
 							if (result != 1) {
 								Tools.showAlertDialog(this, "Error", "Error code = " + result);
 								return;
-							} else {
-								message = "Time label updated.";
 							}
+							message = "Time label updated.";
 						} else {
-							dataSource.insertTimeRange(labelName, fromDate, fromTime, toDate, toTime);
+							timeLabelDataSource.insertTimeRange(labelName, fromDate, fromTime, toDate, toTime);
+							message = "Time label created.";
 						}
 					}
 				} else if (isAllDay && !isRepeat) {
@@ -392,7 +400,10 @@ public class AddNewTimeLabelActivity extends Activity {
 						return;
 					} else {
 						if (prevLabelName != null) {
-							int result = dataSource.updateTimeLabel(prevLabelName, labelName, fromDate, fromTime, toDate, toTime, isAllDay, isRepeat, repeatType
+							if (!prevLabelName.equals(labelName)) {
+								ruleDataSource.updateTimeLabelName(prevLabelName, labelName);
+							}
+							int result = timeLabelDataSource.updateTimeLabel(prevLabelName, labelName, fromDate, fromTime, toDate, toTime, isAllDay, isRepeat, repeatType
 									, repeatDay, isMon, isTue, isWed, isThu, isFri, isSat, isSun);
 							if (result != 1) {
 								Tools.showAlertDialog(this, "Error", "Error code = " + result);
@@ -401,7 +412,8 @@ public class AddNewTimeLabelActivity extends Activity {
 								message = "Time label updated.";
 							}
 						} else {
-							dataSource.insertAllDay(labelName, fromDate, toDate);
+							timeLabelDataSource.insertAllDay(labelName, fromDate, toDate);
+							message = "Time label created.";
 						}
 					}
 				} else if (!isAllDay && isRepeat) {
@@ -413,7 +425,10 @@ public class AddNewTimeLabelActivity extends Activity {
 						return;
 					} else {
 						if (prevLabelName != null) {
-							int result = dataSource.updateTimeLabel(prevLabelName, labelName, fromDate, fromTime, toDate, toTime, isAllDay, isRepeat, repeatType
+							if (!prevLabelName.equals(labelName)) {
+								ruleDataSource.updateTimeLabelName(prevLabelName, labelName);
+							}
+							int result = timeLabelDataSource.updateTimeLabel(prevLabelName, labelName, fromDate, fromTime, toDate, toTime, isAllDay, isRepeat, repeatType
 									, repeatDay, isMon, isTue, isWed, isThu, isFri, isSat, isSun);
 							if (result != 1) {
 								Tools.showAlertDialog(this, "Error", "Error code = " + result);
@@ -423,18 +438,22 @@ public class AddNewTimeLabelActivity extends Activity {
 							}
 						} else {
 							if (repeatType.equalsIgnoreCase(TimeLabel.REPEAT_TYPE_WEEKLY)) {
-								dataSource.insertRepeatWeekly(labelName, fromTime, toTime, isMon, isTue, isWed, isThu, isFri, isSat, isSun);
+								timeLabelDataSource.insertRepeatWeekly(labelName, fromTime, toTime, isMon, isTue, isWed, isThu, isFri, isSat, isSun);
 							} else if (repeatType.equalsIgnoreCase(TimeLabel.REPEAT_TYPE_MONTHLY)) {
-								dataSource.insertRepeatMonthly(labelName, fromTime, toTime, repeatDay);
+								timeLabelDataSource.insertRepeatMonthly(labelName, fromTime, toTime, repeatDay);
 							} else {
 								Tools.showAlertDialog(this, "Error", "Unknown repeat type: " + repeatType);
 								return;
 							}
+							message = "Time label created.";
 						}
 					}
 				} else if (isAllDay && isRepeat) {
 					if (prevLabelName != null) {
-						int result = dataSource.updateTimeLabel(prevLabelName, labelName, fromDate, fromTime, toDate, toTime, isAllDay, isRepeat, repeatType
+						if (!prevLabelName.equals(labelName)) {
+							ruleDataSource.updateTimeLabelName(prevLabelName, labelName);
+						}
+						int result = timeLabelDataSource.updateTimeLabel(prevLabelName, labelName, fromDate, fromTime, toDate, toTime, isAllDay, isRepeat, repeatType
 								, repeatDay, isMon, isTue, isWed, isThu, isFri, isSat, isSun);
 						if (result != 1) {
 							Tools.showAlertDialog(this, "Error", "Error code = " + result);
@@ -444,20 +463,20 @@ public class AddNewTimeLabelActivity extends Activity {
 						}
 					} else {
 						if (repeatType.equalsIgnoreCase(TimeLabel.REPEAT_TYPE_WEEKLY)) {
-							dataSource.insertAllDayRepeatWeekly(labelName, isMon, isTue, isWed, isThu, isFri, isSat, isSun);
+							timeLabelDataSource.insertAllDayRepeatWeekly(labelName, isMon, isTue, isWed, isThu, isFri, isSat, isSun);
 						} else if (repeatType.equalsIgnoreCase(TimeLabel.REPEAT_TYPE_MONTHLY)) {
-							dataSource.insertAllDayRepeatMonthly(labelName, repeatDay);
+							timeLabelDataSource.insertAllDayRepeatMonthly(labelName, repeatDay);
 						} else {
 							Tools.showAlertDialog(this, "Error", "Unknown repeat type: " + repeatType);
 							return;
 						}
+						message = "Time label created.";
 					}
-				}
-				message = "Time label created.";
+				}				
 			}
 		} catch (SQLiteConstraintException e) {
 			if (isSetupLabel) {
-				int result = dataSource.updateTimeLabel(labelName, labelName, fromDate, fromTime, toDate, toTime, isAllDay, isRepeat, repeatType
+				int result = timeLabelDataSource.updateTimeLabel(labelName, labelName, fromDate, fromTime, toDate, toTime, isAllDay, isRepeat, repeatType
 						, repeatDay, isMon, isTue, isWed, isThu, isFri, isSat, isSun);
 				if (result != 1) {
 					Tools.showAlertDialog(this, "Error", "Error code = " + result);
@@ -491,7 +510,7 @@ public class AddNewTimeLabelActivity extends Activity {
 		String fromTime = this.fromTime.getText().toString();
 		String toDate = this.toDate.getText().toString();
 		String toTime = this.toTime.getText().toString();
-		
+
 		DateTimeFormatter fmt = DateTimeFormat.forPattern("MM/dd/yyyy hh:mm aa");
 
 		DateTime start;

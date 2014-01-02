@@ -22,11 +22,13 @@ import edu.ucla.nesl.rulemanager.Const;
 import edu.ucla.nesl.rulemanager.R;
 import edu.ucla.nesl.rulemanager.Tools;
 import edu.ucla.nesl.rulemanager.db.LocationLabelDataSource;
+import edu.ucla.nesl.rulemanager.db.RuleDataSource;
 
 @SuppressLint("SetJavaScriptEnabled")
 public class AddNewLocationLabelActivity extends Activity {
 
-	private LocationLabelDataSource dataSource;
+	private LocationLabelDataSource locationLabelDataSource;
+	private RuleDataSource ruleDataSource;
 
 	private WebView mapView;
 	private LocationManager locationManager;
@@ -42,7 +44,8 @@ public class AddNewLocationLabelActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_add_new_location_label);
 
-		dataSource = new LocationLabelDataSource(this);
+		ruleDataSource = new RuleDataSource(this);
+		locationLabelDataSource = new LocationLabelDataSource(this);
 
 		labelEditText = (EditText) findViewById(R.id.location_label);
 
@@ -143,13 +146,15 @@ public class AddNewLocationLabelActivity extends Activity {
 
 	@Override
 	protected void onResume() {
-		dataSource.open();
+		locationLabelDataSource.open();
+		ruleDataSource.open();
 		super.onResume();
 	}
 
 	@Override
 	protected void onPause() {
-		dataSource.close();
+		locationLabelDataSource.close();
+		ruleDataSource.close();
 		super.onPause();
 	}
 
@@ -174,19 +179,21 @@ public class AddNewLocationLabelActivity extends Activity {
 		} else {
 			String message = null;
 			if (prevLabelName != null) {
-				int result = dataSource.updateLocationLabel(prevLabelName, labelName, latitude, longitude, radius);
+				if (!prevLabelName.equals(labelName)) {
+					ruleDataSource.updateLocationLabelName(prevLabelName, labelName);
+				}
+				int result = locationLabelDataSource.updateLocationLabel(prevLabelName, labelName, latitude, longitude, radius);
 				if (result != 1) {
 					Tools.showAlertDialog(this, "Error", "Error code = " + result);
 					return;
-				} else {
-					message = "Location label updated.";
 				}
+				message = "Location label updated.";
 			} else {
 				try {
-					dataSource.insert(labelName, latitude, longitude, radius);
+					locationLabelDataSource.insert(labelName, latitude, longitude, radius);
 				} catch (SQLiteConstraintException e) {
 					if (isSetupLabel) {
-						int result = dataSource.updateLocationLabel(labelName, labelName, latitude, longitude, radius);
+						int result = locationLabelDataSource.updateLocationLabel(labelName, labelName, latitude, longitude, radius);
 						if (result != 1) {
 							Tools.showAlertDialog(this, "Error", "Error code = " + result);
 							return;

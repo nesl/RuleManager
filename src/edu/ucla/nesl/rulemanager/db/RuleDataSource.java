@@ -49,6 +49,14 @@ public class RuleDataSource extends DataSource {
 	public int deleteRule(int id) {
 		return database.delete(SQLiteHelper.TABLE_RULES, SQLiteHelper.COL_ID + " = ?", new String[] { Integer.toString(id) });
 	}
+	
+	public int deleteRuleWithTimeLabel(String label) {
+		return database.delete(SQLiteHelper.TABLE_RULES, SQLiteHelper.COL_TIME_LABEL + " = ?", new String[] { label });
+	}
+
+	public int deleteRuleWithLocationLabel(String label) {
+		return database.delete(SQLiteHelper.TABLE_RULES, SQLiteHelper.COL_LOCATION_LABEL + " = ?", new String[] { label });
+	}
 
 	public int update(int prevRuleId, String action, String data, String consumer, String timeLabel, String locationLabel) {
 		ContentValues values = new ContentValues();
@@ -84,4 +92,63 @@ public class RuleDataSource extends DataSource {
 		}
 		return rule;
 	}
+
+	public int updateTimeLabelName(String prevLabel, String newLabel) {
+		if (prevLabel == null || newLabel == null) {
+			return 0;
+		}
+		
+		ContentValues values = new ContentValues();
+		values.put(SQLiteHelper.COL_TIME_LABEL, newLabel);
+		
+		return database.update(SQLiteHelper.TABLE_RULES, values, SQLiteHelper.COL_TIME_LABEL + " = ?", new String[] { prevLabel });
+	}
+
+	public int updateLocationLabelName(String prevLabel, String newLabel) {
+		if (prevLabel == null || newLabel == null) {
+			return 0;
+		}
+		
+		ContentValues values = new ContentValues();
+		values.put(SQLiteHelper.COL_LOCATION_LABEL, newLabel);
+		
+		return database.update(SQLiteHelper.TABLE_RULES, values, SQLiteHelper.COL_LOCATION_LABEL + " = ?", new String[] { prevLabel });
+	}
+
+	public List<Rule> getRulesWithTimeLabel(String timeLabel) {
+		Cursor c = database.query(SQLiteHelper.TABLE_RULES, null, SQLiteHelper.COL_TIME_LABEL + " = ?", new String[] { timeLabel }, null, null, null);
+		List<Rule> rules = new ArrayList<Rule>();
+		c.moveToFirst();
+		while (!c.isAfterLast()) {
+			Rule rule = new Rule();
+			rule.setId(c.getInt(0));
+			rule.setAction(c.getString(1));
+			rule.setData(c.getString(2));
+			rule.setConsumer(c.getString(3));
+			rule.setTimeLabel(c.getString(4).equals("") ? null : c.getString(4));
+			rule.setLocationLabel(c.getString(5).equals("") ? null : c.getString(5));
+			rules.add(rule);
+			c.moveToNext();
+		}
+		return rules;
+	}
+	
+	public List<Rule> getRulesWithLocationLabel(String locationLabel) {
+		Cursor c = database.query(SQLiteHelper.TABLE_RULES, null, SQLiteHelper.COL_LOCATION_LABEL + " = ?", new String[] { locationLabel }, null, null, null);
+		List<Rule> rules = new ArrayList<Rule>();
+		c.moveToFirst();
+		while (!c.isAfterLast()) {
+			Rule rule = new Rule();
+			rule.setId(c.getInt(0));
+			rule.setAction(c.getString(1));
+			rule.setData(c.getString(2));
+			rule.setConsumer(c.getString(3));
+			rule.setTimeLabel(c.getString(4).equals("") ? null : c.getString(4));
+			rule.setLocationLabel(c.getString(5).equals("") ? null : c.getString(5));
+			rules.add(rule);
+			c.moveToNext();
+		}
+		return rules;
+	}
+
 }

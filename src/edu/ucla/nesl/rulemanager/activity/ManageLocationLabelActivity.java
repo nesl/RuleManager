@@ -4,7 +4,9 @@ import java.util.List;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -21,11 +23,14 @@ import edu.ucla.nesl.rulemanager.Const;
 import edu.ucla.nesl.rulemanager.R;
 import edu.ucla.nesl.rulemanager.Tools;
 import edu.ucla.nesl.rulemanager.db.LocationLabelDataSource;
+import edu.ucla.nesl.rulemanager.db.RuleDataSource;
 import edu.ucla.nesl.rulemanager.db.model.LocationLabel;
+import edu.ucla.nesl.rulemanager.db.model.Rule;
 
 public class ManageLocationLabelActivity extends Activity {
 
-	private LocationLabelDataSource dataSource;
+	private LocationLabelDataSource locationLabelDataSource;
+	private RuleDataSource ruleDataSource;
 	private List<LocationLabel> labels;
 
 	private LocationLabelItemsAdapter locationLabelItemsAdapter;
@@ -37,7 +42,8 @@ public class ManageLocationLabelActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_manage_location_labels);
 
-		dataSource = new LocationLabelDataSource(this);
+		locationLabelDataSource = new LocationLabelDataSource(this);
+		ruleDataSource = new RuleDataSource(this);
 
 		locationLabelListView = (ListView) findViewById(R.id.location_labels_listview);
 		locationLabelItemsAdapter = new LocationLabelItemsAdapter();
@@ -48,24 +54,26 @@ public class ManageLocationLabelActivity extends Activity {
 	
 	@Override
 	protected void onResume() {
-		dataSource.open();
-		labels = dataSource.getLocationLabels(); 
+		ruleDataSource.open();
+		locationLabelDataSource.open();
+		labels = locationLabelDataSource.getLocationLabels(); 
 		locationLabelItemsAdapter.notifyDataSetChanged();
 		
-		if (labels.size() == 2) {
+		/*if (labels.size() == 2) {
 			LocationLabel l1 = labels.get(0);
 			LocationLabel l2 = labels.get(1);
 			String msg = "distance: " + String.format("%.2f", l1.getDistance(l2)) + " meters.\n";
 			msg += "checkOverlap? " + l1.checkOverlap(l2);
 			Tools.showAlertDialog(this, "Test", msg);
-		}
+		}*/
 		
 		super.onResume();
 	}
 
 	@Override
 	protected void onPause() {
-		dataSource.close();
+		ruleDataSource.close();
+		locationLabelDataSource.close();
 		super.onPause();
 	}
 
@@ -98,14 +106,56 @@ public class ManageLocationLabelActivity extends Activity {
 			bundle.putDouble(Const.BUNDLE_KEY_RADIUS, selectedLabel.getRadius());
 			intent.putExtras(bundle);
 			startActivity(intent);
+			
 		} else if (menuItemName.equalsIgnoreCase("Delete")) {
-			int result = dataSource.deleteLocationLabel(selectedLabel.getLabelName());
-			if (result != 1) {
-				Tools.showMessage(this, "Error code: " + result);
+			
+			final String deleteLabel = selectedLabel.getLabelName();			
+			List<Rule> deleteRules = ruleDataSource.getRulesWithLocationLabel(deleteLabel);
+			
+			if (deleteRules.size() <= 0) {
+				int result = locationLabelDataSource.deleteLocationLabel(selectedLabel.getLabelName());
+				if (result != 1) {
+					Tools.showMessage(this, "Error code: " + result);
+				} else {
+					Tools.showMessage(this, "Successfully deleted " + selectedLabel.getLabelName() + ".");
+					labels = locationLabelDataSource.getLocationLabels();
+					locationLabelItemsAdapter.notifyDataSetChanged();
+				}
 			} else {
-				Tools.showMessage(this, "Successfully deleted " + selectedLabel.getLabelName() + ".");
-				labels = dataSource.getLocationLabels();
-				locationLabelItemsAdapter.notifyDataSetChanged();
+				String message = "The following rules will be deleted, too.";
+				
+				for (Rule rule : deleteRules) {
+					message += "\n- " + rule.getSummaryText();
+				}
+				
+				OnClickListener okListener = new OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						int result = ruleDataSource.deleteRuleWithLocationLabel(deleteLabel);
+						if (result < 1) {
+							Tools.showMessage(context, "Error code: " + result);
+						} else {
+							result = locationLabelDataSource.deleteLocationLabel(deleteLabel);
+							if (result != 1) {
+								Tools.showMessage(context, "Error code: " + result);
+							} else {
+								Tools.showMessage(context, "Successfully deleted " + deleteLabel + ".");
+								labels = locationLabelDataSource.getLocationLabels();
+								locationLabelItemsAdapter.notifyDataSetChanged();
+							}
+						}
+						dialog.dismiss();
+					}
+				};
+				
+				OnClickListener cancelListener = new OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						dialog.dismiss();
+					}
+				};
+					
+				Tools.showAlertDialog(context, "Are you sure?", message, okListener, cancelListener);
 			}
 		} else {
 			return false;

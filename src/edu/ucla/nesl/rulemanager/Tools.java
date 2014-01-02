@@ -39,6 +39,18 @@ public class Tools {
 		dialog.show();
 	}
 
+	public static void showAlertDialog(Context context, String title, String message, DialogInterface.OnClickListener okListener, DialogInterface.OnClickListener cancelListener) {
+		AlertDialog dialog = new AlertDialog.Builder(context).create();
+		if (title != null) 
+			dialog.setTitle(title);
+		if (message != null)
+			dialog.setMessage(message);
+		dialog.setButton("OK", okListener);
+		dialog.setButton2("CANCEL", cancelListener);
+		dialog.setCancelable(false);
+		dialog.show();
+	}
+
 	public static void showMessage(Context context, String message) {
 		Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
 	}

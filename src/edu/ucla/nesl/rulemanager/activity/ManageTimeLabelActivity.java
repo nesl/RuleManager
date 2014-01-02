@@ -4,6 +4,8 @@ import java.util.List;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.ContextMenu;
@@ -20,12 +22,15 @@ import android.widget.TextView;
 import edu.ucla.nesl.rulemanager.Const;
 import edu.ucla.nesl.rulemanager.R;
 import edu.ucla.nesl.rulemanager.Tools;
+import edu.ucla.nesl.rulemanager.db.RuleDataSource;
 import edu.ucla.nesl.rulemanager.db.TimeLabelDataSource;
+import edu.ucla.nesl.rulemanager.db.model.Rule;
 import edu.ucla.nesl.rulemanager.db.model.TimeLabel;
 
 public class ManageTimeLabelActivity extends Activity {
 
-	private TimeLabelDataSource dataSource;
+	private TimeLabelDataSource timeLabelDataSource;
+	private RuleDataSource ruleDataSource;
 	private List<TimeLabel> labels;
 
 	private TimeLabelItemsAdapter timeLabelItemsAdapter;
@@ -37,7 +42,8 @@ public class ManageTimeLabelActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_manage_time_labels);
 
-		dataSource = new TimeLabelDataSource(this);
+		timeLabelDataSource = new TimeLabelDataSource(this);
+		ruleDataSource = new RuleDataSource(this);
 
 		timeLabelListView = (ListView) findViewById(R.id.time_labels_listview);
 		timeLabelItemsAdapter = new TimeLabelItemsAdapter();
@@ -48,21 +54,24 @@ public class ManageTimeLabelActivity extends Activity {
 
 	@Override
 	protected void onResume() {
-		dataSource.open();
-		labels = dataSource.getTimeLabels(); 
+		timeLabelDataSource.open();
+		labels = timeLabelDataSource.getTimeLabels(); 
 		timeLabelItemsAdapter.notifyDataSetChanged();
 
-		// Test Code
+		ruleDataSource.open();
+
+		/*
 		if (labels.size() == 2) {
 			int checkOverlap = labels.get(0).checkOverlap(labels.get(1));
 			Tools.showAlertDialog(this, "Test", "checkOverlap: " + checkOverlap);		
-		}
+		}*/
 		super.onResume();
 	}
 
 	@Override
 	protected void onPause() {
-		dataSource.close();
+		timeLabelDataSource.close();
+		ruleDataSource.close();
 		super.onPause();
 	}
 
@@ -107,14 +116,55 @@ public class ManageTimeLabelActivity extends Activity {
 			bundle.putBoolean(Const.BUNDLE_KEY_IS_REPEAT_SUN, selectedLabel.isRepeatSun());
 			intent.putExtras(bundle);
 			startActivity(intent);
+			
 		} else if (menuItemName.equalsIgnoreCase("Delete")) {
-			int result = dataSource.deleteTimeLabel(selectedLabel.getLabelName());
-			if (result != 1) {
-				Tools.showMessage(this, "Error code: " + result);
+			final String deleteLabel = selectedLabel.getLabelName();			
+			List<Rule> deleteRules = ruleDataSource.getRulesWithTimeLabel(deleteLabel);
+			if (deleteRules.size() <= 0) {
+				int result = timeLabelDataSource.deleteTimeLabel(selectedLabel.getLabelName());
+				if (result != 1) {
+					Tools.showMessage(this, "Error code: " + result);
+				} else {
+					Tools.showMessage(this, "Successfully deleted " + selectedLabel.getLabelName() + ".");
+					labels = timeLabelDataSource.getTimeLabels();
+					timeLabelItemsAdapter.notifyDataSetChanged();
+				}
 			} else {
-				Tools.showMessage(this, "Successfully deleted " + selectedLabel.getLabelName() + ".");
-				labels = dataSource.getTimeLabels();
-				timeLabelItemsAdapter.notifyDataSetChanged();
+				
+				String message = "The following rules will be deleted, too.";
+				
+				for (Rule rule : deleteRules) {
+					message += "\n- " + rule.getSummaryText();
+				}
+				
+				OnClickListener okListener = new OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						int result = ruleDataSource.deleteRuleWithTimeLabel(deleteLabel);
+						if (result < 1) {
+							Tools.showMessage(context, "Error code: " + result);
+						} else {
+							result = timeLabelDataSource.deleteTimeLabel(deleteLabel);
+							if (result != 1) {
+								Tools.showMessage(context, "Error code: " + result);
+							} else {
+								Tools.showMessage(context, "Successfully deleted " + deleteLabel + ".");
+								labels = timeLabelDataSource.getTimeLabels();
+								timeLabelItemsAdapter.notifyDataSetChanged();
+							}
+						}
+						dialog.dismiss();
+					}
+				};
+				
+				OnClickListener cancelListener = new OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						dialog.dismiss();
+					}
+				};
+					
+				Tools.showAlertDialog(context, "Are you sure?", message, okListener, cancelListener);
 			}
 		} else {
 			return false;
