@@ -409,15 +409,15 @@ public class GridRuleTableLayout extends RelativeLayout {
 		return textView;
 	}
 
-	
+
 	private View createViewForTableDCell(final String leftHeader, final String topHeader, RuleGridElement elem){
-	
+
 		//return createDebugViewForTableDCell(leftHeader, topHeader, elem);
-		
+
 		if (elem == null) {
 			return createDenyEveryoneTableCell();
 		}
-		
+
 		// prepare sets
 		Set<String> everyone = new HashSet<String>();
 		everyone.addAll(Arrays.asList(Tools.getConsumerNames()));
@@ -450,7 +450,6 @@ public class GridRuleTableLayout extends RelativeLayout {
 
 		// adjust sets
 		partialAllowed.removeAll(allowed);
-		partialDenied.removeAll(denied);
 		allowed.removeAll(denied);
 		partialAllowed.removeAll(denied);
 		if (denied.size() == 0) {
@@ -463,7 +462,8 @@ public class GridRuleTableLayout extends RelativeLayout {
 			denied.clear();
 			denied.addAll(everyone);
 		}
-		
+		partialDenied.removeAll(denied);
+
 		// convert back to everyone
 		if (allowed.containsAll(everyone)) {
 			allowed.clear();
@@ -485,54 +485,122 @@ public class GridRuleTableLayout extends RelativeLayout {
 		// Generate text
 		String allowText = "";
 		String denyText = "";
+		String partialAllowText = "";
+		String partialDenyText = "";
 		
 		if (allowed.size() > 0) {
 			for (String allow : allowed) {
 				allowText += allow + ", ";
 			}
-			allowText = allowText.substring(0, allowText.length() - 2) + " ";
+			allowText = allowText.substring(0, allowText.length() - 2);
 		}
 		if (partialAllowed.size() > 0) {
-			allowText += "(";
 			for (String allow : partialAllowed) {
-				allowText += allow + ", ";
+				partialAllowText += allow + ", ";
 			}
-			allowText = allowText.substring(0, allowText.length() - 2) + ")";
+			partialAllowText = partialAllowText.substring(0, partialAllowText.length() - 2);
 		}
 
 		if (denied.size() > 0) {
 			for (String deny : denied) {
 				denyText += deny + ", ";
 			}
-			denyText = denyText.substring(0, denyText.length() - 2) + " ";
+			denyText = denyText.substring(0, denyText.length() - 2);
 		}
 		if (partialDenied.size() > 0) {
-			denyText += "(";
 			for (String deny : partialDenied) {
-				denyText += deny + ", ";
+				partialDenyText += deny + ", ";
 			}
-			denyText = denyText.substring(0, denyText.length() - 2) + ")";
+			partialDenyText = partialDenyText.substring(0, partialDenyText.length() - 2);
 		}
 
-		View retView = null;
+		return createTableDCellViewWithText(allowText, partialAllowText, denyText, partialDenyText);
+	}
 
-		if (allowText.length() <= 0 && denyText.length() <= 0) {
-			retView = createDenyEveryoneTableCell();
-		} else if (allowText.length() <= 0 && denyText.length() > 0) {
-			retView = createDenyEveryoneTableCell();
-		} else if (allowText.length() > 0 && denyText.length() <= 0) {
-			return createAllowDenyCellView(allowText, true);
-		} else if (allowText.length() > 0 && denyText.length() > 0) {
-			retView = createAllowDenyCombinedView(allowText, denyText);
+	private View createTableDCellViewWithText(String allowText, String partialAllowText, String denyText, String partialDenyText) {
+		boolean isAllow = (allowText.length() > 0 || partialAllowText.length() > 0);
+		boolean isDeny = (denyText.length() > 0 || partialDenyText.length() > 0);
+		
+		View retView = null;
+		if (isAllow && isDeny) {
+			LinearLayout linearLayout = new LinearLayout(this.context);
+			linearLayout.setOrientation(LinearLayout.VERTICAL);
+
+			TextView allowTextView = createAllowDenyCellView(allowText, partialAllowText, true);
+			TextView denyTextView = createAllowDenyCellView(denyText, partialDenyText, false);
+
+			LinearLayout.LayoutParams params;
+			params = new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, 0, 1);
+			allowTextView.setLayoutParams(params);
+			denyTextView.setLayoutParams(params);
+
+			linearLayout.addView(allowTextView);
+			linearLayout.addView(denyTextView);
+
+			linearLayout.setBackgroundResource(TABLE_CELL_BACKGROUND_RESOURCE);
+			
+			retView = linearLayout;
+		} else if (isAllow && !isDeny) {
+			retView = createAllowDenyCellView(allowText, partialAllowText, true);
+		} else if (!isAllow && isDeny) {
+			retView = createAllowDenyCellView(denyText, partialDenyText, false);
 		} else {
 			assert false;
+			return null;
 		}
-		
+
+		String text = generateDialogText(allowText, partialAllowText, denyText, partialDenyText);
+		setClickDialog(retView, text);
+
 		return retView;
 	}
 
+	private String generateDialogText(String allowText, String partialAllowText, String denyText, String partialDenyText) {
+		String text = "";
+		if (allowText.length() > 0) {
+			text += "- Shared with " + allowText;
+		}
+		if (denyText.length() > 0) {
+			if (text.length() > 0) {
+				text += "\n";
+			}
+			text += "- Not shared with " + denyText;
+		}
+		if (partialAllowText.length() > 0) {
+			if (text.length() > 0) {
+				text += "\n";
+			}
+			text += "- Partially shared with " + partialAllowText;
+		}
+		if (partialDenyText.length() > 0) {
+			if (text.length() > 0) {
+				text += "\n";
+			}
+			text += "- Partially not shared with " + partialDenyText;
+		}
+		return text;
+	}
+
+	private void setClickDialog(View view, final String text) {
+		view.setClickable(true);
+		view.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				AlertDialog dialog = new AlertDialog.Builder(context).create();
+				dialog.setMessage(text);
+				dialog.setButton("OK", new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						dialog.dismiss();
+					}
+				});
+				dialog.show();
+			}
+		});
+	}
+
 	private View createDebugViewForTableDCell(String leftHeader, String topHeader, RuleGridElement elem) {
-		
+
 		if (elem == null) {
 			return createTextViewForTableDCell("null");
 		} else {
@@ -551,7 +619,7 @@ public class GridRuleTableLayout extends RelativeLayout {
 				}
 				denyText = denyText.substring(0, denyText.length() - 2);
 			}
-			
+
 			String paText = "";
 			if (elem.partialAllowedList.size() > 0) {
 				for (String pa : elem.partialAllowedList) {
@@ -559,7 +627,7 @@ public class GridRuleTableLayout extends RelativeLayout {
 				}
 				paText = paText.substring(0, paText.length() - 2);
 			}
-			
+
 			String pdText = "";
 			if (elem.partialDeniedList.size() > 0) {
 				for (String pd : elem.partialDeniedList) {
@@ -584,28 +652,21 @@ public class GridRuleTableLayout extends RelativeLayout {
 		return false;
 	}
 
-	private View createAllowDenyCombinedView(String allowText, String denyText) {
-		LinearLayout linearLayout = new LinearLayout(this.context);
-		linearLayout.setOrientation(LinearLayout.VERTICAL);
-
-		TextView allowTextView = createAllowDenyCellView(allowText, true);
-		TextView denyTextView = createAllowDenyCellView(denyText, false);
-
-		LinearLayout.LayoutParams params;
-		params = new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, 0, 1);
-		allowTextView.setLayoutParams(params);
-		denyTextView.setLayoutParams(params);
-
-		linearLayout.addView(allowTextView);
-		linearLayout.addView(denyTextView);
-		
-		return linearLayout;
-	}
-
-	private TextView createAllowDenyCellView(final String text, boolean isAllow) {
+	private TextView createAllowDenyCellView(String consumers, String partialConsumers, boolean isAllow) {
 
 		TextView textView = new TextView(this.context);
 
+		String text = "";
+		if (consumers.length() > 0) {
+			text += consumers;
+		}
+		if (partialConsumers.length() > 0) {
+			if (text.length() > 0) {
+				text += " ";
+			}
+			text += "(" + partialConsumers + ")";
+		}
+		
 		if (isAllow) {
 			textView.setBackgroundResource(TABLE_CELL_ALLOW_BACKGROUND_RESOURCE);
 			textView.setTextColor(getResources().getColor(ALLOW_TEXT_COLOR_RESOURCE));
@@ -623,6 +684,18 @@ public class GridRuleTableLayout extends RelativeLayout {
 			textView.setEllipsize(TruncateAt.END);
 		}
 
+		return textView;
+	}
+
+	private View createDenyEveryoneTableCell() {
+		TextView textView = new TextView(this.context);
+		textView.setBackgroundResource(TABLE_CELL_DENY_BACKGROUND_RESOURCE);
+		textView.setTextColor(getResources().getColor(DENY_TEXT_COLOR_RESOURCE));
+		textView.setGravity(Gravity.CENTER);
+		textView.setPadding(5, 5, 5, 5);
+		textView.setText(Const.EVERYONE);
+
+		final String text = "- Not shared with " + Const.EVERYONE;
 		textView.setClickable(true);
 		textView.setOnClickListener(new OnClickListener() {
 			@Override
@@ -639,16 +712,6 @@ public class GridRuleTableLayout extends RelativeLayout {
 			}
 		});
 
-		return textView;
-	}
-
-	private View createDenyEveryoneTableCell() {
-		TextView textView = new TextView(this.context);
-		textView.setBackgroundResource(TABLE_CELL_DENY_BACKGROUND_RESOURCE);
-		textView.setTextColor(getResources().getColor(DENY_TEXT_COLOR_RESOURCE));
-		textView.setGravity(Gravity.CENTER);
-		textView.setPadding(5, 5, 5, 5);
-		textView.setText(Const.EVERYONE);
 		return textView;
 	}
 
