@@ -10,7 +10,8 @@ public class Rule {
 	
 	public Rule() {}
 	
-	public Rule(String action, String data, String consumer, String timeLabel, String locationLabel) {
+	public Rule(int id, String action, String data, String consumer, String timeLabel, String locationLabel) {
+		this.id = id;
 		this.action = action;
 		this.data = data;
 		this.consumer = consumer;

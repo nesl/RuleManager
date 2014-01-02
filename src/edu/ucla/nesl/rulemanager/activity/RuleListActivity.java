@@ -11,14 +11,12 @@ import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.ToggleButton;
 import edu.ucla.nesl.rulemanager.Const;
 import edu.ucla.nesl.rulemanager.R;
 import edu.ucla.nesl.rulemanager.Tools;
@@ -159,7 +157,7 @@ public class RuleListActivity extends Activity {
 			}
 
 			Rule rule = rules.get(position);
-			holder.ruleContent.setText(rule.getId() + ": " + rule.getSummaryText());
+			holder.ruleContent.setText(rule.getSummaryText());
 
 			return convertView;
 		}

@@ -2,7 +2,10 @@ package edu.ucla.nesl.rulemanager.activity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import android.app.Activity;
 import android.content.Context;
@@ -27,7 +30,9 @@ import edu.ucla.nesl.rulemanager.Tools;
 import edu.ucla.nesl.rulemanager.db.LocationLabelDataSource;
 import edu.ucla.nesl.rulemanager.db.RuleDataSource;
 import edu.ucla.nesl.rulemanager.db.TimeLabelDataSource;
+import edu.ucla.nesl.rulemanager.db.model.LocationLabel;
 import edu.ucla.nesl.rulemanager.db.model.Rule;
+import edu.ucla.nesl.rulemanager.db.model.TimeLabel;
 import edu.ucla.nesl.rulemanager.uielement.MySpinner;
 
 public class AddNewRuleActivity extends Activity {
@@ -365,6 +370,7 @@ public class AddNewRuleActivity extends Activity {
 				}
 				rules.remove(prevRule);
 
+				prevRule.setId(-1);
 				prevRule.setAction(action);
 				prevRule.setData(data);
 				prevRule.setConsumer(consumer);
@@ -373,28 +379,26 @@ public class AddNewRuleActivity extends Activity {
 				
 				rules.add(prevRule);
 
-				if (isConflictRules(rules)) {
-					return;
-				}
+				String conflictMsg = generateConflictRulesMsg(rules);
+				String overlapMsg = generateOverlappingLabelMsg(timeLabel, locationLabel);
 				
 				int result = ruleDataSource.update(prevRuleId, action, data, consumer, timeLabel, locationLabel);
 				if (result != 1) {
 					Tools.showAlertDialog(this, "Error", "Error code = " + result);
 					return;
 				} else {
-					message = "The rule has been updated.";
+					message = "The rule has been updated." + conflictMsg + overlapMsg;
 				}
 			} else if (prevRuleId == 0) {
 				// Check rule conflict
 				List<Rule> rules = ruleDataSource.getRules();
-				rules.add(new Rule(action, data, consumer, timeLabel, locationLabel));
+				rules.add(new Rule(-1, action, data, consumer, timeLabel, locationLabel));
 
-				if (isConflictRules(rules)) {
-					return;
-				}
-
+				String conflictMsg = generateConflictRulesMsg(rules);
+				String overlapMsg = generateOverlappingLabelMsg(timeLabel, locationLabel);
+				
 				ruleDataSource.insert(action, data, consumer, timeLabel, locationLabel);
-				message = "A new rule has been created.";
+				message = "A new rule has been created." + conflictMsg + overlapMsg;
 			} else {
 				Tools.showAlertDialog(this, "Error", "Invalid prevRuleId: " + prevRuleId);
 				return;
@@ -412,16 +416,90 @@ public class AddNewRuleActivity extends Activity {
 		});
 	}
 
-	private boolean isConflictRules(List<Rule> rules) {
-		/*List<String> timeLabels = timeLabelDataSource.getLabelNamesWithOther();
+	private String generateOverlappingLabelMsg(String timeLabel, String locationLabel) {
+		if (timeLabel == null && locationLabel == null) {
+			return "";
+		}
+
+		List<String> overlapTimeLabels = new ArrayList<String>();
+		List<String> overlapLocationLabels = new ArrayList<String>();
+		
+		if (timeLabel != null) {
+			List<TimeLabel> tlabels = timeLabelDataSource.getTimeLabels();
+			TimeLabel curLabel = null;
+			for (TimeLabel label : tlabels) {
+				if (label.getLabelName().equals(timeLabel)) {
+					curLabel = label;
+				}
+			}
+			for (TimeLabel label : tlabels) {
+				if (curLabel == label) {
+					continue;
+				}
+				if (curLabel.checkOverlap(label) > 0) {
+					overlapTimeLabels.add(label.getLabelName());
+				}
+			}
+		}
+
+		if (locationLabel != null) {
+			List<LocationLabel> llabels = locationLabelDataSource.getLocationLabels();
+			LocationLabel curLabel = null;
+			for (LocationLabel label : llabels) {
+				if (label.getLabelName().equals(locationLabel)) {
+					curLabel = label;
+				}
+			}
+			for (LocationLabel label : llabels) {
+				if (curLabel == label) {
+					continue;
+				}
+				if (curLabel.checkOverlap(label) > 0) {
+					overlapLocationLabels.add(label.getLabelName());
+				}
+			}
+		}
+
+		if (overlapTimeLabels.size() <= 0 && overlapLocationLabels.size() <= 0) {
+			return "";
+		}
+		
+		String overlapLabelText = "";
+		for (String label : overlapTimeLabels) {
+			overlapLabelText += label + ", ";
+		}
+		for (String label : overlapLocationLabels) {
+			overlapLabelText += label + ", ";
+		}
+		
+		return "\n\nYour rule also affects other rules with following labels: " + overlapLabelText + "because they overlaps with the labels in your rule.";
+	}
+
+	private String generateConflictRulesMsg(List<Rule> rules) {
+		List<String> timeLabels = timeLabelDataSource.getLabelNamesWithOther();
 		List<String> locationLabels = locationLabelDataSource.getLabelNamesWithOther();
 		List<String> sensorNames = Arrays.asList(Tools.getSensorNames());
 		
-		Tools.TableDataResult tableDataResult = Tools.prepareTableData(sensorNames, timeLabels, locationLabels, rules);
+		Tools.TableDataResult tableDataResult = Tools.prepareTableData(sensorNames, timeLabels, locationLabels, rules, timeLabelDataSource.getTimeLabels(), locationLabelDataSource.getLocationLabels());
 		
-		if (tableDataResult.conflictRuleIDs != null) {
+		Map<Integer, Set<Integer>> conflictMap = tableDataResult.conflictMap;
+		
+		Set<Integer> conflictIds = new HashSet<Integer>();
+		for (Map.Entry<Integer, Set<Integer>> entry : conflictMap.entrySet()) {
+			int key = entry.getKey();
+			Set<Integer> value = entry.getValue();
+			if (key == -1) {
+				conflictIds.addAll(value);
+			}
+			if (value.contains(-1)) {
+				conflictIds.add(key);
+			}
+		}
+		
+		if (conflictIds.size() > 0) {
+			
 			List<Rule> cRules = new ArrayList<Rule>();
-			for (int id : tableDataResult.conflictRuleIDs) {
+			for (int id : conflictIds) {
 				Rule conflictRule = ruleDataSource.getARule(id);
 				cRules.add(conflictRule);
 			}
@@ -431,13 +509,19 @@ public class AddNewRuleActivity extends Activity {
 				summaryText += "- " + rule.getSummaryText() + "\n";
 			}
 			
-			if (cRules.size() <= 1) 
-				Tools.showAlertDialog(this, "Error", "Your rule conflicts with the following rule:\n" + summaryText);
-			else 
-				Tools.showAlertDialog(this, "Error", "Your rule conflicts with the following rules:\n" + summaryText);
-			return true;
-		} */
-		return false;
+			String text;
+			if (cRules.size() <= 1) {
+				text = "However, your rule conflicts with the following rule:\n" + summaryText;
+			} else { 
+				text = "However, your rule conflicts with the following rules:\n" + summaryText;
+			}
+			
+			text += "\nWhen rules conflict, \"don't share\" rules override \"share\" rules.";
+			//Tools.showAlertDialog(this, "Notice", text);
+			
+			return "\n\n" + text;
+		} 
+		return "";
 	}
 
 	public void onClickCancelButton(View view) {
