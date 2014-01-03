@@ -1,6 +1,5 @@
 package edu.ucla.nesl.rulemanager.db.model;
 
-import java.nio.channels.OverlappingFileLockException;
 
 public class LocationLabel extends Label {
 	
