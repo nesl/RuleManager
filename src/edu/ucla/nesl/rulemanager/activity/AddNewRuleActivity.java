@@ -472,7 +472,7 @@ public class AddNewRuleActivity extends Activity {
 			overlapLabelText += label + ", ";
 		}
 		
-		return "\n\nYour rule also affects other rules with following labels: " + overlapLabelText + "because they overlap with the labels in your rule.";
+		return "\n\nThis rule also affects other rules with following labels: " + overlapLabelText + "because they overlap with the labels in your rule.";
 	}
 
 	private String generateConflictRulesMsg(List<Rule> rules) {
