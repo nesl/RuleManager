@@ -14,10 +14,8 @@ public class Rule {
 	protected String consumer;
 	protected String timeLabel;
 	protected String locationLabel;
-	protected int uploadCount;
-	protected int serverId;
-
-	public Rule() {}
+	
+ 	public Rule() {}
 
 	public Rule(int id, String action, String data, String consumer, String timeLabel, String locationLabel) {
 		this.id = id;
@@ -74,22 +72,6 @@ public class Rule {
 
 	public void setLocationLabel(String locationLabel) {
 		this.locationLabel = locationLabel;
-	}
-
-	public int getUploadCount() {
-		return uploadCount;
-	}
-
-	public void setUploadCount(int uploadCount) {
-		this.uploadCount = uploadCount;
-	}
-
-	public int getServerId() {
-		return serverId;
-	}
-
-	public void setServerId(int serverId) {
-		this.serverId = serverId;
 	}
 
 	public String getSummaryText() {

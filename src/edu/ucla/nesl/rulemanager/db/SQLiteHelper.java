@@ -7,10 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class SQLiteHelper extends SQLiteOpenHelper {
 
 	private static final String DATABASE_NAME = "rules.db";
-	private static final int DATABASE_VERSION = 9;
-	
-	public static final String COL_SERVER_ID = "server_id";
-	public static final String COL_UPLOAD_COUNT = "upload_counter";
+	private static final int DATABASE_VERSION = 10;
 	
 	public static final String TABLE_LOCATION_LABELS = "location_labels";
 	public static final String COL_LABEL_NAME = "label_name";
@@ -47,9 +44,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
 			+ "( " + COL_LABEL_NAME + " TEXT UNIQUE NOT NULL, "
 			+ COL_LATITUDE + " REAL NOT NULL, "
 			+ COL_LONGITUDE + " REAL NOT NULL, "
-			+ COL_RADIUS + " REAL NOT NULL, "
-			+ COL_SERVER_ID + " INTEGER NOT NULL DEFAULT -1, "
-			+ COL_UPLOAD_COUNT + " INTEGER NOT NULL);";
+			+ COL_RADIUS + " REAL NOT NULL);";
 	
 	private static final String CREATE_TABLE_TIME_LABELS = "CREATE TABLE " + TABLE_TIME_LABELS 
 			+ "( " + COL_LABEL_NAME + " TEXT UNIQUE NOT NULL, "
@@ -67,9 +62,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
 			+ COL_IS_REPEAT_THU + " INTEGER, "
 			+ COL_IS_REPEAT_FRI + " INTEGER, "
 			+ COL_IS_REPEAT_SAT + " INTEGER, "
-			+ COL_IS_REPEAT_SUN + " INTEGER, "
-			+ COL_SERVER_ID + " INTEGER NOT NULL DEFAULT -1, "
-			+ COL_UPLOAD_COUNT + " INTEGER NOT NULL);";
+			+ COL_IS_REPEAT_SUN + " INTEGER);";
 	
 	private static final String CREATE_TABLE_RULES = "CREATE TABLE " + TABLE_RULES
 			+ "( " + COL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
@@ -78,8 +71,6 @@ public class SQLiteHelper extends SQLiteOpenHelper {
 			+ COL_CONSUMER + " TEXT NOT NULL, "
 			+ COL_TIME_LABEL + " TEXT NOT NULL DEFAULT \"\", "
 			+ COL_LOCATION_LABEL + " TEXT NOT NULL DEFAULT \"\", "
-			+ COL_SERVER_ID + " INTEGER NOT NULL DEFAULT -1, "
-			+ COL_UPLOAD_COUNT + " INTEGER NOT NULL, "
 			+ "UNIQUE (" + COL_ACTION + "," + COL_DATA + "," + COL_CONSUMER + "," + COL_TIME_LABEL + "," + COL_LOCATION_LABEL + ") );";
 	
 	public SQLiteHelper(Context context) {

@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.security.KeyStore;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -35,10 +36,18 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
+import android.app.AlarmManager;
 import android.app.IntentService;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
+import android.content.SharedPreferences;
+import android.os.Handler;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
+import android.widget.Toast;
 import edu.ucla.nesl.rulemanager.db.LocationLabelDataSource;
 import edu.ucla.nesl.rulemanager.db.RuleDataSource;
 import edu.ucla.nesl.rulemanager.db.TimeLabelDataSource;
@@ -48,55 +57,127 @@ import edu.ucla.nesl.rulemanager.db.model.TimeLabel;
 
 public class SyncService extends IntentService {
 
-	public SyncService() {
-		super("SyncService");
-	}
+	private static final String PORT = "8443";
+	private static int SERVICE_RESTART_INTERVAL = 5 * 60; // seconds
 
 	private String serverip;
 	private String username;
 	private String password;
 
+	private Handler handler;
+
+	public SyncService() {
+		super("SyncService");
+	}
+
+	@Override
+	public void onCreate() {
+		super.onCreate();
+		handler = new Handler();
+	}
+
+	public static void startSyncService(Context context) {
+		// Start upload service
+		Intent i = new Intent(context, SyncService.class);
+		context.startService(i); 
+	}
+
+	private void postToast(final String msg) {
+		handler.post(new Runnable() {            
+			@Override
+			public void run() {
+				Toast.makeText(SyncService.this, msg, Toast.LENGTH_LONG).show();                
+			}
+		});
+	}
+
 	@Override
 	protected void onHandleIntent(Intent intent) {
-		Bundle bundle = intent.getExtras();		
-		int signalType = bundle.getInt(Const.SIGNAL_TYPE);
-		serverip = bundle.getString(Const.PREFS_SERVER_IP);
-		username = bundle.getString(Const.PREFS_USERNAME);
-		password = bundle.getString(Const.PREFS_PASSWORD);
-		
-		try {
-			switch (signalType) {
-			case Const.SIGNAL_UPDATE_ALL:
-				syncMacros();
-				syncRules();
-				break;
-			case Const.SIGNAL_LOCATION_LABEL_UPDATED:
-				if (username != null || password != null) { 
+
+		Context context = getApplicationContext();
+		int status = NetworkUtils.getConnectivityStatus(context);
+
+		if (status == NetworkUtils.TYPE_WIFI) {
+			SharedPreferences settings = context.getSharedPreferences(Const.PREFS_NAME, 0);
+			serverip = settings.getString(Const.PREFS_SERVER_IP, null);
+			username = settings.getString(Const.PREFS_USERNAME, null);
+			password = settings.getString(Const.PREFS_PASSWORD, null);
+
+			if (serverip != null && username != null && password != null) {
+				try {
 					syncMacros();
 					syncRules();
+					cancelNotification();
+					cancelServiceSchedule();
+				} catch (ClientProtocolException e) {
+					e.printStackTrace();
+					createNotification("Server Authentication Problem.");
+				} catch (IOException e) {
+					e.printStackTrace();
+					createNotification("Server Connection Problem.");
+					// Schedule next check.
+					if (NetworkUtils.getConnectivityStatus(context) == NetworkUtils.TYPE_WIFI 
+							&& !isServiceScheduled()) {
+						scheduleStartService();
+					}
+				} catch (JSONException e) {
+					e.printStackTrace();
+					createNotification("JSON Exception.");
+				} catch (IllegalAccessException e) {
+					e.printStackTrace();
+					createNotification("Server Response Problem: " + e);
 				}
-				break;
-			case Const.SIGNAL_TIME_LABEL_UPDATED:
-				if (username != null || password != null) { 
-					syncMacros();
-					syncRules();
-				}
-				break;
-			case Const.SIGNAL_RULE_UPDATED:
-				if (username != null || password != null) { 
-					syncRules();
-				}
-				break;
 			}
-		} catch (ClientProtocolException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (JSONException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
+		} else {
+			cancelNotification();
+			cancelServiceSchedule();
 		}
+	}
+
+	private void cancelNotification() {
+	    NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+	    notificationManager.cancel(0);
+	}
+	
+	private void createNotification(String message) {
+		PendingIntent pintent = PendingIntent.getActivity(
+			    getApplicationContext(),
+			    0,
+			    new Intent(),
+			    PendingIntent.FLAG_UPDATE_CURRENT);
+		
+	    Notification noti = new NotificationCompat.Builder(this)
+	        .setContentTitle("RuleManager Error")
+	        .setContentText(message)
+	        .setContentIntent(pintent)
+	        .setSmallIcon(R.drawable.ic_launcher)
+	        .build();
+	    
+	    NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+	    noti.flags |= Notification.FLAG_AUTO_CANCEL;
+	    notificationManager.notify(0, noti);
+	}
+	
+	private boolean isServiceScheduled() {
+		return PendingIntent.getBroadcast(this, 0, new Intent(this, SyncService.class), PendingIntent.FLAG_NO_CREATE) != null;
+	}
+
+	private void scheduleStartService() {
+		Calendar cal = Calendar.getInstance();
+
+		Intent intent = new Intent(this, SyncService.class);
+		PendingIntent pintent = PendingIntent.getService(this, 0, intent, 0);
+
+		AlarmManager alarm = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+		alarm.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis() + SERVICE_RESTART_INTERVAL*1000, pintent);
+	}
+	
+	private void cancelServiceSchedule() {
+		Intent intent = new Intent(this, SyncService.class);
+		PendingIntent pintent = PendingIntent.getService(this, 0, intent, 0);
+		AlarmManager alarm = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+		alarm.cancel(pintent);
 	}
 
 	private HttpClient getNewHttpClient() {
@@ -124,7 +205,7 @@ public class SyncService extends IntentService {
 	}
 
 	private List<JSONObject> getJsonListFromServer(String apiend, boolean deleteId) throws ClientProtocolException, IOException, JSONException, IllegalAccessException {
-		final String url = "https://" + serverip + ":8443/api/" + apiend;
+		final String url = "https://" + serverip + ":" + PORT + "/api/" + apiend;
 
 		HttpClient httpClient = getNewHttpClient();
 		HttpGet httpGet = new HttpGet(url);
@@ -153,6 +234,7 @@ public class SyncService extends IntentService {
 			if (deleteId) {
 				json.remove("id");
 			}
+			json.remove("priority");
 			jsonList.add(json);
 		}
 
@@ -160,7 +242,7 @@ public class SyncService extends IntentService {
 	}
 
 	private void uploadJson(String apiend, JSONObject json) throws ClientProtocolException, IOException, IllegalAccessException {
-		final String url = "https://" + serverip + ":8443/api/" + apiend;
+		final String url = "https://" + serverip + ":" + PORT + "/api/" + apiend;
 
 		HttpClient httpClient = getNewHttpClient();
 		HttpPost httpPost = new HttpPost(url);
@@ -250,7 +332,7 @@ public class SyncService extends IntentService {
 	}
 
 	private void deleteServerMacro(JSONObject macro) throws JSONException, IllegalAccessException, ClientProtocolException, IOException {
-		String url = "https://" + serverip + ":8443/api/macros?";
+		String url = "https://" + serverip + ":" + PORT + "/api/macros?";
 
 		List<NameValuePair> params = new LinkedList<NameValuePair>();
 		params.add(new BasicNameValuePair("macro_name", macro.getString("name")));
@@ -333,7 +415,7 @@ public class SyncService extends IntentService {
 	}
 
 	private void deleteServerRule(JSONObject rule) throws ClientProtocolException, IOException, IllegalAccessException {
-		String url = "https://" + serverip + ":8443/api/rules?";
+		String url = "https://" + serverip + ":" + PORT + "/api/rules?";
 
 		List<NameValuePair> params = new LinkedList<NameValuePair>();
 		try {

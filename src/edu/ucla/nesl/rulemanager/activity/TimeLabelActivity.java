@@ -503,7 +503,7 @@ public class TimeLabelActivity extends Activity {
 			}
 		});
 		
-		Tools.startSyncService(this, Const.SIGNAL_TIME_LABEL_UPDATED);
+		SyncService.startSyncService(this);
 	}
 	
 	private boolean isValidTimeRange() {

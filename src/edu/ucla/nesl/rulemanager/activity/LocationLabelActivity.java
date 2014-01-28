@@ -224,7 +224,7 @@ public class LocationLabelActivity extends Activity {
 				}
 			});		
 			
-			Tools.startSyncService(this, Const.SIGNAL_LOCATION_LABEL_UPDATED);
+			SyncService.startSyncService(this);
 		}
 	}
 

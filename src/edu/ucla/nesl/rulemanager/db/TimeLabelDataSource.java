@@ -33,7 +33,6 @@ public class TimeLabelDataSource extends DataSource {
 		values.put(SQLiteHelper.COL_IS_REPEAT_FRI, false);
 		values.put(SQLiteHelper.COL_IS_REPEAT_SAT, false);
 		values.put(SQLiteHelper.COL_IS_REPEAT_SUN, false);
-		values.put(SQLiteHelper.COL_UPLOAD_COUNT, 1);
 		database.insertOrThrow(SQLiteHelper.TABLE_TIME_LABELS, null, values);
 	}
 	
@@ -61,7 +60,6 @@ public class TimeLabelDataSource extends DataSource {
 		values.put(SQLiteHelper.COL_IS_REPEAT_FRI, isFri);
 		values.put(SQLiteHelper.COL_IS_REPEAT_SAT, isSat);
 		values.put(SQLiteHelper.COL_IS_REPEAT_SUN, isSun);
-		values.put(SQLiteHelper.COL_UPLOAD_COUNT, 1);
 		database.insertOrThrow(SQLiteHelper.TABLE_TIME_LABELS, null, values);
 	}
 	
@@ -81,7 +79,6 @@ public class TimeLabelDataSource extends DataSource {
 		values.put(SQLiteHelper.COL_IS_REPEAT_FRI, false);
 		values.put(SQLiteHelper.COL_IS_REPEAT_SAT, false);
 		values.put(SQLiteHelper.COL_IS_REPEAT_SUN, false);
-		values.put(SQLiteHelper.COL_UPLOAD_COUNT, 1);
 		database.insertOrThrow(SQLiteHelper.TABLE_TIME_LABELS, null, values);
 	}
 	
@@ -100,7 +97,6 @@ public class TimeLabelDataSource extends DataSource {
 		values.put(SQLiteHelper.COL_IS_REPEAT_FRI, false);
 		values.put(SQLiteHelper.COL_IS_REPEAT_SAT, false);
 		values.put(SQLiteHelper.COL_IS_REPEAT_SUN, false);
-		values.put(SQLiteHelper.COL_UPLOAD_COUNT, 1);
 		database.insertOrThrow(SQLiteHelper.TABLE_TIME_LABELS, null, values);
 	}
 
@@ -126,7 +122,6 @@ public class TimeLabelDataSource extends DataSource {
 		values.put(SQLiteHelper.COL_IS_REPEAT_FRI, isFri);
 		values.put(SQLiteHelper.COL_IS_REPEAT_SAT, isSat);
 		values.put(SQLiteHelper.COL_IS_REPEAT_SUN, isSun);
-		values.put(SQLiteHelper.COL_UPLOAD_COUNT, 1);
 		database.insertOrThrow(SQLiteHelper.TABLE_TIME_LABELS, null, values);
 	}
 
@@ -144,7 +139,6 @@ public class TimeLabelDataSource extends DataSource {
 		values.put(SQLiteHelper.COL_IS_REPEAT_FRI, false);
 		values.put(SQLiteHelper.COL_IS_REPEAT_SAT, false);
 		values.put(SQLiteHelper.COL_IS_REPEAT_SUN, false);
-		values.put(SQLiteHelper.COL_UPLOAD_COUNT, 1);
 		database.insertOrThrow(SQLiteHelper.TABLE_TIME_LABELS, null, values);
 	}
 
@@ -170,8 +164,6 @@ public class TimeLabelDataSource extends DataSource {
 			label.setRepeatFri(c.getInt(13) == 0 ? false : true);
 			label.setRepeatSat(c.getInt(14) == 0 ? false : true);
 			label.setRepeatSun(c.getInt(15) == 0 ? false : true);
-			label.setServerId(c.getInt(16));
-			label.setUploadCount(c.getInt(17));
 			labels.add(label);
 			c.moveToNext();
 		}
@@ -205,7 +197,6 @@ public class TimeLabelDataSource extends DataSource {
 		values.put(SQLiteHelper.COL_IS_REPEAT_FRI, isFri);
 		values.put(SQLiteHelper.COL_IS_REPEAT_SAT, isSat);
 		values.put(SQLiteHelper.COL_IS_REPEAT_SUN, isSun);
-		values.put(SQLiteHelper.COL_UPLOAD_COUNT, 1);
 		return database.update(SQLiteHelper.TABLE_TIME_LABELS, values, SQLiteHelper.COL_LABEL_NAME + " = ?", new String[] { prevLabelName });
 	}
 

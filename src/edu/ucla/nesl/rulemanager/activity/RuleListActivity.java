@@ -20,6 +20,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import edu.ucla.nesl.rulemanager.Const;
 import edu.ucla.nesl.rulemanager.R;
+import edu.ucla.nesl.rulemanager.SyncService;
 import edu.ucla.nesl.rulemanager.Tools;
 import edu.ucla.nesl.rulemanager.db.RuleDataSource;
 import edu.ucla.nesl.rulemanager.db.model.Rule;
@@ -54,9 +55,9 @@ public class RuleListActivity extends Activity {
 		rules = dataSource.getRules();
 		ruleItemsAdapter.notifyDataSetChanged();
 		
-		for (Rule rule : rules) {
+		/*for (Rule rule : rules) {
 			Log.i(Const.TAG, rule.toJsonString());
-		}
+		}*/
 		
 		super.onResume();
 	}
@@ -105,7 +106,7 @@ public class RuleListActivity extends Activity {
 				Tools.showMessage(this, "Successfully deleted a rule.");
 				rules = dataSource.getRules();
 				ruleItemsAdapter.notifyDataSetChanged();
-				Tools.startSyncService(this, Const.SIGNAL_RULE_UPDATED);
+				SyncService.startSyncService(this);
 			}
 		} else {
 			return false;

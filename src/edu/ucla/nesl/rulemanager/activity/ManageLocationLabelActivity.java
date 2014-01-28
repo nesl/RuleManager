@@ -22,6 +22,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import edu.ucla.nesl.rulemanager.Const;
 import edu.ucla.nesl.rulemanager.R;
+import edu.ucla.nesl.rulemanager.SyncService;
 import edu.ucla.nesl.rulemanager.Tools;
 import edu.ucla.nesl.rulemanager.db.LocationLabelDataSource;
 import edu.ucla.nesl.rulemanager.db.RuleDataSource;
@@ -68,9 +69,9 @@ public class ManageLocationLabelActivity extends Activity {
 			Tools.showAlertDialog(this, "Test", msg);
 		}*/
 		
-		for (LocationLabel label : labels) {
-			Log.i(Const.TAG, "uploadCount: " + label.getUploadCount() + " " + label.toJsonString());
-		}
+		/*for (LocationLabel label : labels) {
+			Log.i(Const.TAG, label.toJsonString());
+		}*/
 		
 		super.onResume();
 	}
@@ -125,7 +126,7 @@ public class ManageLocationLabelActivity extends Activity {
 					Tools.showMessage(this, "Successfully deleted " + selectedLabel.getLabelName() + ".");
 					labels = locationLabelDataSource.getLocationLabels();
 					locationLabelItemsAdapter.notifyDataSetChanged();
-					Tools.startSyncService(this, Const.SIGNAL_LOCATION_LABEL_UPDATED);
+					SyncService.startSyncService(this);
 				}
 			} else {
 				String message = "The following rules will be deleted, too.";
@@ -148,7 +149,7 @@ public class ManageLocationLabelActivity extends Activity {
 								Tools.showMessage(context, "Successfully deleted " + deleteLabel + ".");
 								labels = locationLabelDataSource.getLocationLabels();
 								locationLabelItemsAdapter.notifyDataSetChanged();
-								Tools.startSyncService(context, Const.SIGNAL_LOCATION_LABEL_UPDATED);
+								SyncService.startSyncService(context);
 							}
 						}
 						dialog.dismiss();

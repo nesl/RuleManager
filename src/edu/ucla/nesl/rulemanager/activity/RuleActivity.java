@@ -416,7 +416,7 @@ public class RuleActivity extends Activity {
 			}
 		});
 		
-		Tools.startSyncService(this, Const.SIGNAL_RULE_UPDATED);
+		SyncService.startSyncService(this);
 	}
 
 	private String generateOverlappingLabelMsg(String timeLabel, String locationLabel) {

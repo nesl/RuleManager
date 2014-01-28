@@ -25,7 +25,6 @@ public class RuleDataSource extends DataSource {
 			values.put(SQLiteHelper.COL_TIME_LABEL, timeLabel);
 		if (locationLabel != null) 
 			values.put(SQLiteHelper.COL_LOCATION_LABEL, locationLabel);
-		values.put(SQLiteHelper.COL_UPLOAD_COUNT, 1);
 		database.insertOrThrow(SQLiteHelper.TABLE_RULES, null, values);
 	}
 
@@ -41,8 +40,6 @@ public class RuleDataSource extends DataSource {
 			rule.setConsumer(c.getString(3));
 			rule.setTimeLabel(c.getString(4).equals("") ? null : c.getString(4));
 			rule.setLocationLabel(c.getString(5).equals("") ? null : c.getString(5));
-			rule.setServerId(c.getInt(6));
-			rule.setUploadCount(c.getInt(7));
 			rules.add(rule);
 			c.moveToNext();
 		}
@@ -91,8 +88,6 @@ public class RuleDataSource extends DataSource {
 			rule.setConsumer(c.getString(3));
 			rule.setTimeLabel(c.getString(4).equals("") ? null : c.getString(4));
 			rule.setLocationLabel(c.getString(5).equals("") ? null : c.getString(5));
-			rule.setServerId(c.getInt(6));
-			rule.setUploadCount(c.getInt(7));
 			c.moveToNext();
 		}
 		return rule;
@@ -132,8 +127,6 @@ public class RuleDataSource extends DataSource {
 			rule.setConsumer(c.getString(3));
 			rule.setTimeLabel(c.getString(4).equals("") ? null : c.getString(4));
 			rule.setLocationLabel(c.getString(5).equals("") ? null : c.getString(5));
-			rule.setServerId(c.getInt(6));
-			rule.setUploadCount(c.getInt(7));
 			rules.add(rule);
 			c.moveToNext();
 		}
@@ -152,8 +145,6 @@ public class RuleDataSource extends DataSource {
 			rule.setConsumer(c.getString(3));
 			rule.setTimeLabel(c.getString(4).equals("") ? null : c.getString(4));
 			rule.setLocationLabel(c.getString(5).equals("") ? null : c.getString(5));
-			rule.setServerId(c.getInt(6));
-			rule.setUploadCount(c.getInt(7));
 			rules.add(rule);
 			c.moveToNext();
 		}

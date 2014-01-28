@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import edu.ucla.nesl.rulemanager.Const;
+import edu.ucla.nesl.rulemanager.IPAddressValidator;
 import edu.ucla.nesl.rulemanager.R;
 import edu.ucla.nesl.rulemanager.Tools;
 
@@ -62,6 +63,11 @@ public class SetupUserDialog extends Dialog {
 			if (serveripStr == null || serveripStr.length() <= 0) {
 				Tools.showAlertDialog(context, "Error", "Please enter your server IP address.");
 				return;
+			} else {
+				if (!IPAddressValidator.validate(serveripStr)) {
+					Tools.showAlertDialog(context, "Error", "Please enter a valid IP address.");
+					return;
+				}
 			}
 			
 			if (usernameStr == null || usernameStr.length() <= 0) {

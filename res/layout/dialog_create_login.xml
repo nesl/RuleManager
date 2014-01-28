@@ -23,6 +23,7 @@
             android:layout_height="40dp"
             android:gravity="center"
             android:text="@string/server_ip"
+            android:layout_alignRight="@id/username_text"
             android:textAppearance="?android:attr/textAppearanceMedium" />
 
         <EditText
