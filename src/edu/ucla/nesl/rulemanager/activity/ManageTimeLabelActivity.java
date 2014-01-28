@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
@@ -65,6 +66,11 @@ public class ManageTimeLabelActivity extends Activity {
 			int checkOverlap = labels.get(0).checkOverlap(labels.get(1));
 			Tools.showAlertDialog(this, "Test", "checkOverlap: " + checkOverlap);		
 		}*/
+		
+		for (TimeLabel label : labels) {
+			Log.i(Const.TAG, label.toJsonString());
+		}
+		
 		super.onResume();
 	}
 
@@ -96,7 +102,7 @@ public class ManageTimeLabelActivity extends Activity {
 		TimeLabel selectedLabel = labels.get(info.position);
 
 		if (menuItemName.equalsIgnoreCase("Edit")) {
-			Intent intent = new Intent(this, AddNewTimeLabelActivity.class);
+			Intent intent = new Intent(this, TimeLabelActivity.class);
 			Bundle bundle = new Bundle();
 			bundle.putString(Const.BUNDLE_KEY_LABEL_NAME, selectedLabel.getLabelName());
 			bundle.putString(Const.BUNDLE_KEY_FROM_DATE, selectedLabel.getFromDate());
@@ -128,6 +134,7 @@ public class ManageTimeLabelActivity extends Activity {
 					Tools.showMessage(this, "Successfully deleted " + selectedLabel.getLabelName() + ".");
 					labels = timeLabelDataSource.getTimeLabels();
 					timeLabelItemsAdapter.notifyDataSetChanged();
+					Tools.startSyncService(this, Const.SIGNAL_TIME_LABEL_UPDATED);
 				}
 			} else {
 				
@@ -151,6 +158,7 @@ public class ManageTimeLabelActivity extends Activity {
 								Tools.showMessage(context, "Successfully deleted " + deleteLabel + ".");
 								labels = timeLabelDataSource.getTimeLabels();
 								timeLabelItemsAdapter.notifyDataSetChanged();
+								Tools.startSyncService(context, Const.SIGNAL_TIME_LABEL_UPDATED);
 							}
 						}
 						dialog.dismiss();
@@ -237,7 +245,7 @@ public class ManageTimeLabelActivity extends Activity {
 	};
 
 	public void onClickAddNewTimeLabel(View v) {
-		Intent intent = new Intent(this, AddNewTimeLabelActivity.class);
+		Intent intent = new Intent(this, TimeLabelActivity.class);
 		startActivity(intent);
 	}
 }    

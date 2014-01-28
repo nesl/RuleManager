@@ -26,8 +26,8 @@ import android.widget.TextView;
 import edu.ucla.nesl.rulemanager.Const;
 import edu.ucla.nesl.rulemanager.R;
 import edu.ucla.nesl.rulemanager.Tools;
-import edu.ucla.nesl.rulemanager.activity.AddNewLocationLabelActivity;
-import edu.ucla.nesl.rulemanager.activity.AddNewTimeLabelActivity;
+import edu.ucla.nesl.rulemanager.activity.LocationLabelActivity;
+import edu.ucla.nesl.rulemanager.activity.TimeLabelActivity;
 import edu.ucla.nesl.rulemanager.data.RuleGridElement;
 
 public class GridRuleTableLayout extends RelativeLayout {
@@ -257,7 +257,7 @@ public class GridRuleTableLayout extends RelativeLayout {
 				textView.setOnClickListener(new OnClickListener() {
 					@Override
 					public void onClick(View v) {
-						Intent intent = new Intent(context, AddNewTimeLabelActivity.class);
+						Intent intent = new Intent(context, TimeLabelActivity.class);
 						context.startActivity(intent);
 					}
 				});
@@ -367,7 +367,7 @@ public class GridRuleTableLayout extends RelativeLayout {
 			textView.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					Intent intent = new Intent(context, AddNewLocationLabelActivity.class);
+					Intent intent = new Intent(context, LocationLabelActivity.class);
 					context.startActivity(intent);
 				}
 			});

@@ -22,6 +22,7 @@ public class LocationLabelDataSource extends DataSource {
 		values.put(SQLiteHelper.COL_LATITUDE, latitude);
 		values.put(SQLiteHelper.COL_LONGITUDE, longitude);
 		values.put(SQLiteHelper.COL_RADIUS, radius);
+		values.put(SQLiteHelper.COL_UPLOAD_COUNT, 1);
 		database.insertOrThrow(SQLiteHelper.TABLE_LOCATION_LABELS, null, values);
 	}
 
@@ -35,6 +36,8 @@ public class LocationLabelDataSource extends DataSource {
 			label.setLatitude(c.getDouble(1));
 			label.setLongitude(c.getDouble(2));
 			label.setRadius(c.getDouble(3));
+			label.setServerId(c.getInt(4));
+			label.setUploadCount(c.getInt(5));
 			labels.add(label);
 			c.moveToNext();
 		}
@@ -46,12 +49,25 @@ public class LocationLabelDataSource extends DataSource {
 	}
 
 	public int updateLocationLabel(String prevLabelName, String newLabelName, double latitude, double longitude, double radius) {
-		ContentValues values = new ContentValues();
+		
+		database.execSQL("UPDATE " + SQLiteHelper.TABLE_LOCATION_LABELS + " SET "
+				+ SQLiteHelper.COL_LABEL_NAME + "='" + newLabelName + "', "
+				+ SQLiteHelper.COL_LATITUDE + "=" + latitude + ", "
+				+ SQLiteHelper.COL_LONGITUDE + "=" + longitude + ", "
+				+ SQLiteHelper.COL_RADIUS + "=" + radius + ", "
+				+ SQLiteHelper.COL_UPLOAD_COUNT + "=" + SQLiteHelper.COL_UPLOAD_COUNT + "+1 "
+				+ "WHERE " + SQLiteHelper.COL_LABEL_NAME + "='" + prevLabelName + "';");
+		
+		return 1;
+		
+		/*ContentValues values = new ContentValues();
 		values.put(SQLiteHelper.COL_LABEL_NAME, newLabelName);
 		values.put(SQLiteHelper.COL_LATITUDE, latitude);
 		values.put(SQLiteHelper.COL_LONGITUDE, longitude);
 		values.put(SQLiteHelper.COL_RADIUS, radius);
-		return database.update(SQLiteHelper.TABLE_LOCATION_LABELS, values, SQLiteHelper.COL_LABEL_NAME + " = ?", new String[] { prevLabelName });
+		values.put(SQLiteHelper.COL_UPLOAD_COUNTER, 0);
+		
+		return database.update(SQLiteHelper.TABLE_LOCATION_LABELS, values, SQLiteHelper.COL_LABEL_NAME + " = ?", new String[] { prevLabelName });*/
 	}
 
 	public List<String> getLabelNames() {

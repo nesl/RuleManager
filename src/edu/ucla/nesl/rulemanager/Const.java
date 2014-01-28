@@ -3,6 +3,17 @@ package edu.ucla.nesl.rulemanager;
 public class Const {
 	public static final String TAG = "RuleManager";
 	
+	public static final String SIGNAL_TYPE = "signal_type";
+	public static final int SIGNAL_UPDATE_ALL = 1;
+	public static final int SIGNAL_LOCATION_LABEL_UPDATED = 2;
+	public static final int SIGNAL_TIME_LABEL_UPDATED = 3;
+	public static final int SIGNAL_RULE_UPDATED = 4;
+	
+	public static final String GPS_DISTANCE_FUNCTION_NAME = "gps_distance";
+	public static final String LOCATION_STREAM_NAME = "location";
+	public static final String LATITUDE_CHANNEL_NAME = "latitude";
+	public static final String LONGITUDE_CHANNEL_NAME = "longitude";
+
 	public static final int REQUEST_CODE_NORMAL = 1;
 	public static final int REQUEST_CODE_NEW_LABEL = 2;
 	public static final int REQUEST_CODE_SETUP_HOME_LOCATION = 3;
@@ -13,6 +24,7 @@ public class Const {
 	public static final String PREFS_IS_FIRST = "is_first";
 	public static final String PREFS_USERNAME = "username";
 	public static final String PREFS_PASSWORD = "password";
+	public static final String PREFS_SERVER_IP = "server_ip";
 	
 	public static final String LABEL_TYPE_TIME = "time";
 	public static final String LABEL_TYPE_LOCATION = "location";
@@ -60,4 +72,7 @@ public class Const {
 
 	public static final String OTHER_TIME = "Other time";
 	public static final String OTHER_LOCATIONS = "Other locations";
+
+	public static final String LOCATION_LABEL_PREFIX = "location_";
+	public static final String TIME_LABEL_PREFIX = "time_";
 }

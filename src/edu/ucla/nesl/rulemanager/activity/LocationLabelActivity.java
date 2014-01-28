@@ -21,11 +21,12 @@ import android.widget.Toast;
 import edu.ucla.nesl.rulemanager.Const;
 import edu.ucla.nesl.rulemanager.R;
 import edu.ucla.nesl.rulemanager.Tools;
+import edu.ucla.nesl.rulemanager.SyncService;
 import edu.ucla.nesl.rulemanager.db.LocationLabelDataSource;
 import edu.ucla.nesl.rulemanager.db.RuleDataSource;
 
 @SuppressLint("SetJavaScriptEnabled")
-public class AddNewLocationLabelActivity extends Activity {
+public class LocationLabelActivity extends Activity {
 
 	private LocationLabelDataSource locationLabelDataSource;
 	private RuleDataSource ruleDataSource;
@@ -222,6 +223,8 @@ public class AddNewLocationLabelActivity extends Activity {
 					finish();
 				}
 			});		
+			
+			Tools.startSyncService(this, Const.SIGNAL_LOCATION_LABEL_UPDATED);
 		}
 	}
 

@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
@@ -52,6 +53,11 @@ public class RuleListActivity extends Activity {
 		dataSource.open();
 		rules = dataSource.getRules();
 		ruleItemsAdapter.notifyDataSetChanged();
+		
+		for (Rule rule : rules) {
+			Log.i(Const.TAG, rule.toJsonString());
+		}
+		
 		super.onResume();
 	}
 
@@ -81,7 +87,7 @@ public class RuleListActivity extends Activity {
 		Rule rule = rules.get(info.position);
 
 		if (menuItemName.equalsIgnoreCase("Edit")) {
-			Intent intent = new Intent(this, AddNewRuleActivity.class);
+			Intent intent = new Intent(this, RuleActivity.class);
 			Bundle bundle = new Bundle();
 			bundle.putInt(Const.BUNDLE_KEY_ID, rule.getId());
 			bundle.putString(Const.BUNDLE_KEY_ACTION, rule.getAction());
@@ -99,6 +105,7 @@ public class RuleListActivity extends Activity {
 				Tools.showMessage(this, "Successfully deleted a rule.");
 				rules = dataSource.getRules();
 				ruleItemsAdapter.notifyDataSetChanged();
+				Tools.startSyncService(this, Const.SIGNAL_RULE_UPDATED);
 			}
 		} else {
 			return false;
@@ -179,7 +186,7 @@ public class RuleListActivity extends Activity {
 	};*/
 
 	public void onClickAddNewRule(View v) {
-		Intent intent = new Intent(this, AddNewRuleActivity.class);
+		Intent intent = new Intent(this, RuleActivity.class);
 		startActivity(intent);
 	}
 }    

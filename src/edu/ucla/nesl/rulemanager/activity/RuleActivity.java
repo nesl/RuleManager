@@ -27,6 +27,7 @@ import android.widget.TextView;
 import edu.ucla.nesl.rulemanager.Const;
 import edu.ucla.nesl.rulemanager.R;
 import edu.ucla.nesl.rulemanager.Tools;
+import edu.ucla.nesl.rulemanager.SyncService;
 import edu.ucla.nesl.rulemanager.db.LocationLabelDataSource;
 import edu.ucla.nesl.rulemanager.db.RuleDataSource;
 import edu.ucla.nesl.rulemanager.db.TimeLabelDataSource;
@@ -35,7 +36,7 @@ import edu.ucla.nesl.rulemanager.db.model.Rule;
 import edu.ucla.nesl.rulemanager.db.model.TimeLabel;
 import edu.ucla.nesl.rulemanager.uielement.MySpinner;
 
-public class AddNewRuleActivity extends Activity {
+public class RuleActivity extends Activity {
 
 	private LocationLabelDataSource locationLabelDataSource;
 	private TimeLabelDataSource timeLabelDataSource;
@@ -225,7 +226,7 @@ public class AddNewRuleActivity extends Activity {
 			int lastPos = timeLabelAdapter.getCount() - 1;
 			if (pos == lastPos) {
 				// start new time label activity
-				Intent intent = new Intent(context, AddNewTimeLabelActivity.class);
+				Intent intent = new Intent(context, TimeLabelActivity.class);
 				startActivityForResult(intent, Const.REQUEST_CODE_NEW_LABEL);
 			} else {
 				prevTimeLabel = (String)timeLabelSpinner.getSelectedItem();
@@ -274,7 +275,7 @@ public class AddNewRuleActivity extends Activity {
 			int lastPos = locationLabelAdapter.getCount() - 1;
 			if (pos == lastPos) {
 				// start new location label activity
-				Intent intent = new Intent(context, AddNewLocationLabelActivity.class);
+				Intent intent = new Intent(context, LocationLabelActivity.class);
 				startActivityForResult(intent, Const.REQUEST_CODE_NEW_LABEL);
 			} else {
 				prevLocationLabel = (String)locationLabelSpinner.getSelectedItem();
@@ -414,6 +415,8 @@ public class AddNewRuleActivity extends Activity {
 				finish();
 			}
 		});
+		
+		Tools.startSyncService(this, Const.SIGNAL_RULE_UPDATED);
 	}
 
 	private String generateOverlappingLabelMsg(String timeLabel, String locationLabel) {

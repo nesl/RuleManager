@@ -11,6 +11,8 @@ import org.apache.commons.collections4.map.MultiKeyMap;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.widget.Toast;
 import edu.ucla.nesl.rulemanager.data.RuleGridElement;
 import edu.ucla.nesl.rulemanager.db.model.LocationLabel;
@@ -332,6 +334,39 @@ public class Tools {
 		}
 
 		mkMap.put(timeLabel, locationLabel, elem);
+	}
 
+	public static String makeValidMacroName(String name) {
+		return name.replace(" ", "_");
+	}
+	
+	public static String makeMacroRefer(String macro) {
+		return "$(" + makeValidMacroName(macro) + ")";
+	}
+
+	public static String joinString(List<String> strlist, String joiner) {
+		String ret = "";
+		for (String str : strlist) {
+			ret += str + joiner;
+		}
+		ret = ret.substring(0, ret.length() - joiner.length());
+		return ret;
+	}
+	
+	public static void startSyncService(Context context, int signalType) {
+		SharedPreferences settings = context.getSharedPreferences(Const.PREFS_NAME, 0);
+		String serverip = settings.getString(Const.PREFS_SERVER_IP, null);
+		String username = settings.getString(Const.PREFS_USERNAME, null);
+		String password = settings.getString(Const.PREFS_PASSWORD, null);
+
+		if (serverip != null && username != null && password != null) {
+			// Start upload service
+			Intent i = new Intent(context, SyncService.class);
+			i.putExtra(Const.SIGNAL_TYPE, signalType);
+			i.putExtra(Const.PREFS_SERVER_IP, serverip);
+			i.putExtra(Const.PREFS_USERNAME, username);
+			i.putExtra(Const.PREFS_PASSWORD, password);
+			context.startService(i); 
+		}
 	}
 }

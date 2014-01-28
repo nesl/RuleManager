@@ -1,5 +1,11 @@
 package edu.ucla.nesl.rulemanager.db.model;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import edu.ucla.nesl.rulemanager.Const;
+import edu.ucla.nesl.rulemanager.Tools;
+
 
 public class LocationLabel extends Label {
 	
@@ -90,5 +96,27 @@ public class LocationLabel extends Label {
 				Math.cos(y2) * Math.pow(Math.sin(dlong / 2), 2);
 		double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 		return EARTH_METERS * c;
+	}
+	
+	public JSONObject toJson() {
+		String name = Tools.makeValidMacroName(labelName);
+		String value = Const.GPS_DISTANCE_FUNCTION_NAME + "(" 
+				+ Const.LOCATION_STREAM_NAME + "." + Const.LATITUDE_CHANNEL_NAME + ", "
+				+ Const.LOCATION_STREAM_NAME + "." + Const.LONGITUDE_CHANNEL_NAME + ", "
+				+ getLatitude() + ", " + getLongitude() + ") <= " + getRadius();
+
+		JSONObject json = new JSONObject();
+		try {
+			json.put("name", Const.LOCATION_LABEL_PREFIX + name);
+			json.put("value", value);
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return null;
+		}
+		return json;
+	}
+	
+	public String toJsonString() {
+		return toJson().toString();
 	}
 }

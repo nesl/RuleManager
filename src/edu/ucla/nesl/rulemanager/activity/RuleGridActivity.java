@@ -94,7 +94,6 @@ public class RuleGridActivity extends TabActivity {
 		locationLabels = locationLabelDataSource.getLabelNamesWithOther();
 		
 		List<Rule> rules = ruleDataSource.getRules();
-		Log.i(Const.TAG, "size: " + rules.size());
 		if (rules == null || rules.size() <= 0) {
 			isNoRules = true;
 		} else {
@@ -156,7 +155,7 @@ public class RuleGridActivity extends TabActivity {
 		View tabView = createTabView(tabHost.getContext(), tag);
 		TabSpec setContent = tabHost.newTabSpec(tag).setIndicator(tabView).setContent(tabContentFactory);
 		//TabSpec setContent = tabHost.newTabSpec(tag).setIndicator(tag).setContent(tabContentFactory);
-		Log.i(Const.TAG, "tag: " + tag + ", tabView: " + tabView + ", setContent: " + setContent);
+		//Log.i(Const.TAG, "tag: " + tag + ", tabView: " + tabView + ", setContent: " + setContent);
 		tabHost.addTab(setContent);
 	}
 
@@ -168,7 +167,7 @@ public class RuleGridActivity extends TabActivity {
 	}
 
     public void onClickAddNewRule(View v) {
-	    Intent intent = new Intent(this, AddNewRuleActivity.class);
+	    Intent intent = new Intent(this, RuleActivity.class);
 	    startActivity(intent);
     }
 }

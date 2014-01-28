@@ -3,13 +3,20 @@ package edu.ucla.nesl.rulemanager.db.model;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.List;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import edu.ucla.nesl.rulemanager.Const;
+import edu.ucla.nesl.rulemanager.Tools;
 
 public class TimeLabel extends Label {
 
@@ -651,5 +658,138 @@ public class TimeLabel extends Label {
 			return true;
 		}
 		return false;
+	}
+
+	private String convertTimeTo24(String time) {
+		if (!time.contains("AM") && !time.contains("am") && !time.contains("PM") && !time.contains("pm")) {
+			return time;
+		}
+		
+		String[] splitTime = time.split(" ");
+		String[] timeonly = splitTime[0].split(":");
+		String ampm = splitTime[1];
+		int hour = Integer.parseInt(timeonly[0]);
+		int min = Integer.parseInt(timeonly[1]);
+		
+		if (ampm.equalsIgnoreCase("AM")) {
+			if (hour == 0 || hour == 12) {
+				hour = 0;
+			}
+		} else if (ampm.equalsIgnoreCase("PM")) {
+			if (hour != 12) {
+				hour += 12;
+			}
+		} else {
+			assert false;
+			return time;
+		}
+				
+		return String.format("%02d:%02d", hour, min);
+	}
+
+	private String getTimeRangeCondition() {
+		String value = "";
+		String[] fromTime24 = convertTimeTo24(fromTime).split(":");
+		String[] toTime24 = convertTimeTo24(toTime).split(":");
+		int fromHour = Integer.parseInt(fromTime24[0]);
+		int fromMin = Integer.parseInt(fromTime24[1]);
+		int toHour = Integer.parseInt(toTime24[0]);
+		int toMin = Integer.parseInt(toTime24[1]);
+		
+		if (toHour == fromHour) {
+			value += "(HOUR(timestamp) = " + toHour + " and MINUTE(timestamp) BETWEEN " + fromMin + " AND " + toMin +")"; 
+		} else if (toHour - fromHour == 1) {
+			value += "(";
+			value += "(HOUR(timestamp) = " + fromHour + " and MINUTE(timestamp) >= " + fromMin + ")";
+			value += " OR ";
+			value += "(HOUR(timestamp) = " + toHour + " and MINUTE(timestamp) <= " + toMin + ")";
+			value += ")";
+		} else {
+			value += "(";
+			value += "(HOUR(timestamp) = " + fromHour + " and MINUTE(timestamp) >= " + fromMin + ")";
+			value += " OR ";
+			value += "(HOUR(timestamp) = " + toHour + " and MINUTE(timestamp) <= " + toMin + ")";
+			value += " OR ";
+			value += "(HOUR(timestamp) BETWEEN " + (fromHour+1) + " AND " + (toHour-1) + ")";
+			value += ")";
+		}
+		return value;
+	}
+	
+	public JSONObject toJson() {
+		String name = Tools.makeValidMacroName(labelName);
+		String value = null;
+		if (isRepeat) {
+			if (repeatType.equalsIgnoreCase(REPEAT_TYPE_MONTHLY)) {
+				value = "[ * * * " + repeatDay + " * * ]";
+				if (!isAllDay) {
+					value += " AND " + getTimeRangeCondition();
+				} 
+			} else if (repeatType.equalsIgnoreCase(REPEAT_TYPE_WEEKLY)) {
+				List<String> days = new ArrayList<String>();
+				if (isRepeatSun) {
+					days.add("0");
+				}
+				if (isRepeatMon) {
+					days.add("1");
+				}
+				if (isRepeatTue) {
+					days.add("2");
+				}
+				if (isRepeatWed) {
+					days.add("3");
+				}
+				if (isRepeatThu) {
+					days.add("4");
+				}
+				if (isRepeatFri) {
+					days.add("5");
+				}
+				if (isRepeatSat) {
+					days.add("6");
+				}
+				value = "[ * * * * * " + Tools.joinString(days, ",") + " ]";
+				if (!isAllDay) {
+					value += " AND " + getTimeRangeCondition();
+				} 
+			} else {
+				assert false;
+				return null;
+			}
+		} else {
+			if (isAllDay) {
+				DateTimeFormatter fmt = DateTimeFormat.forPattern("MM/dd/yyyy");
+				DateTime toDateTime = fmt.parseDateTime(toDate);
+				toDateTime = toDateTime.plusDays(1);
+				String newToDate = toDateTime.toString(fmt);
+				value = "(timestamp >= '" + convertToValidSqlDate(fromDate) + " 00:00:00'"
+						+ " AND timestamp < '" + convertToValidSqlDate(newToDate) + " 00:00:00')"; 
+			} else {
+				String format = "timestamp BETWEEN '%s' AND '%s'";
+				String from = convertToValidSqlDate(fromDate) + " " + convertTimeTo24(fromTime) + ":00";
+				String to = convertToValidSqlDate(toDate) + " " + convertTimeTo24(toTime) + ":00";
+				value = String.format(format, from, to);
+			}
+		}
+		
+		JSONObject json = new JSONObject();
+		try {
+			json.put("name", Const.TIME_LABEL_PREFIX + name);
+			json.put("value", value);
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return null;
+		}
+		
+		return json;
+	}
+
+	public String toJsonString() {
+		return toJson().toString();
+	}
+	
+	private String convertToValidSqlDate(String date) {
+		String[] split = date.split("/");
+		return split[2] + "-" + split[0] + "-" + split[1];
 	}
 }

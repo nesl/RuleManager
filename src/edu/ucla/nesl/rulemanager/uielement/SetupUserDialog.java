@@ -18,6 +18,7 @@ public class SetupUserDialog extends Dialog {
 
 	private OnFinishListener onFinishListener;
 
+	private EditText serverip;
 	private EditText username;
 	private EditText password;
 	private EditText passwordConfirm;
@@ -40,6 +41,7 @@ public class SetupUserDialog extends Dialog {
 		setCancelable(false);
 		setTitle("Create a login");
 
+		serverip = (EditText)findViewById(R.id.server_ip);
 		username = (EditText)findViewById(R.id.username);
 		password = (EditText)findViewById(R.id.password);
 		passwordConfirm = (EditText)findViewById(R.id.password_confirm);
@@ -52,9 +54,15 @@ public class SetupUserDialog extends Dialog {
 		@Override
 		public void onClick(View v) {
 			
+			String serveripStr = serverip.getText().toString();
 			String usernameStr = username.getText().toString();
 			String passwordStr = password.getText().toString();
 			String passwordConfirmStr = passwordConfirm.getText().toString();
+			
+			if (serveripStr == null || serveripStr.length() <= 0) {
+				Tools.showAlertDialog(context, "Error", "Please enter your server IP address.");
+				return;
+			}
 			
 			if (usernameStr == null || usernameStr.length() <= 0) {
 				Tools.showAlertDialog(context, "Error", "Please enter your user name.");
@@ -78,6 +86,7 @@ public class SetupUserDialog extends Dialog {
 			
 			SharedPreferences settings = context.getSharedPreferences(Const.PREFS_NAME, 0);
 			SharedPreferences.Editor editor = settings.edit();
+			editor.putString(Const.PREFS_SERVER_IP, serveripStr);
 			editor.putString(Const.PREFS_USERNAME, usernameStr);
 			editor.putString(Const.PREFS_PASSWORD, passwordStr);
 			editor.commit();

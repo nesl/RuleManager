@@ -48,7 +48,7 @@ public class MainActivity extends Activity {
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					dialog.dismiss();
-					Intent intent = new Intent(context, AddNewLocationLabelActivity.class);
+					Intent intent = new Intent(context, LocationLabelActivity.class);
 					Bundle bundle = new Bundle();
 					bundle.putString(Const.BUNDLE_KEY_LABEL_NAME, "work");
 					bundle.putBoolean(Const.BUNDLE_KEY_IS_SETUP_LABEL, true);
@@ -62,7 +62,7 @@ public class MainActivity extends Activity {
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					dialog.dismiss();
-					Intent intent = new Intent(context, AddNewTimeLabelActivity.class);
+					Intent intent = new Intent(context, TimeLabelActivity.class);
 					Bundle bundle = new Bundle();
 					bundle.putString(Const.BUNDLE_KEY_LABEL_NAME, "work hour");
 					bundle.putBoolean(Const.BUNDLE_KEY_IS_SETUP_LABEL, true);
@@ -113,7 +113,7 @@ public class MainActivity extends Activity {
 			Tools.showAlertDialog(context, "Your home location", "In the following screen, please specify your home location.", new OnClickListener() {
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
-					Intent intent = new Intent(context, AddNewLocationLabelActivity.class);
+					Intent intent = new Intent(context, LocationLabelActivity.class);
 					Bundle bundle = new Bundle();
 					bundle.putString(Const.BUNDLE_KEY_LABEL_NAME, "home");
 					bundle.putBoolean(Const.BUNDLE_KEY_IS_SETUP_LABEL, true);

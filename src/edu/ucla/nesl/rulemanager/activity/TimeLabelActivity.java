@@ -23,13 +23,14 @@ import android.widget.TimePicker;
 import edu.ucla.nesl.rulemanager.Const;
 import edu.ucla.nesl.rulemanager.R;
 import edu.ucla.nesl.rulemanager.Tools;
+import edu.ucla.nesl.rulemanager.SyncService;
 import edu.ucla.nesl.rulemanager.db.RuleDataSource;
 import edu.ucla.nesl.rulemanager.db.TimeLabelDataSource;
 import edu.ucla.nesl.rulemanager.db.model.TimeLabel;
 import edu.ucla.nesl.rulemanager.uielement.TimeRepeatDialog;
 import edu.ucla.nesl.rulemanager.uielement.TimeRepeatDialog.TimeRepeatDialogListener;
 
-public class AddNewTimeLabelActivity extends Activity {
+public class TimeLabelActivity extends Activity {
 
 	private TimeLabelDataSource timeLabelDataSource;
 	private RuleDataSource ruleDataSource;
@@ -500,9 +501,11 @@ public class AddNewTimeLabelActivity extends Activity {
 			public void onClick(DialogInterface dialog, int which) {
 				finish();
 			}
-		});		
+		});
+		
+		Tools.startSyncService(this, Const.SIGNAL_TIME_LABEL_UPDATED);
 	}
-
+	
 	private boolean isValidTimeRange() {
 		boolean isAllDay = alldayCheckBox.isChecked();
 		boolean isRepeat = repeatCheckBox.isChecked();

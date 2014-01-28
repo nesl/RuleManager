@@ -5,9 +5,10 @@ import java.util.List;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.DialogInterface.OnClickListener;
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
@@ -67,6 +68,10 @@ public class ManageLocationLabelActivity extends Activity {
 			Tools.showAlertDialog(this, "Test", msg);
 		}*/
 		
+		for (LocationLabel label : labels) {
+			Log.i(Const.TAG, "uploadCount: " + label.getUploadCount() + " " + label.toJsonString());
+		}
+		
 		super.onResume();
 	}
 
@@ -98,7 +103,7 @@ public class ManageLocationLabelActivity extends Activity {
 		LocationLabel selectedLabel = labels.get(info.position);
 
 		if (menuItemName.equalsIgnoreCase("Edit")) {
-			Intent intent = new Intent(this, AddNewLocationLabelActivity.class);
+			Intent intent = new Intent(this, LocationLabelActivity.class);
 			Bundle bundle = new Bundle();
 			bundle.putString(Const.BUNDLE_KEY_LABEL_NAME, selectedLabel.getLabelName());
 			bundle.putDouble(Const.BUNDLE_KEY_LATITUDE, selectedLabel.getLatitude());
@@ -120,6 +125,7 @@ public class ManageLocationLabelActivity extends Activity {
 					Tools.showMessage(this, "Successfully deleted " + selectedLabel.getLabelName() + ".");
 					labels = locationLabelDataSource.getLocationLabels();
 					locationLabelItemsAdapter.notifyDataSetChanged();
+					Tools.startSyncService(this, Const.SIGNAL_LOCATION_LABEL_UPDATED);
 				}
 			} else {
 				String message = "The following rules will be deleted, too.";
@@ -142,6 +148,7 @@ public class ManageLocationLabelActivity extends Activity {
 								Tools.showMessage(context, "Successfully deleted " + deleteLabel + ".");
 								labels = locationLabelDataSource.getLocationLabels();
 								locationLabelItemsAdapter.notifyDataSetChanged();
+								Tools.startSyncService(context, Const.SIGNAL_LOCATION_LABEL_UPDATED);
 							}
 						}
 						dialog.dismiss();
@@ -231,7 +238,7 @@ public class ManageLocationLabelActivity extends Activity {
 	};
 
 	public void onClickAddNewLocationLabel(View v) {
-		Intent intent = new Intent(this, AddNewLocationLabelActivity.class);
+		Intent intent = new Intent(this, LocationLabelActivity.class);
 		startActivity(intent);
 	}
 }    
