@@ -1,4 +1,4 @@
-package edu.ucla.nesl.rulemanager;
+package edu.ucla.nesl.rulemanager.tools;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -13,6 +13,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.util.Log;
 import android.widget.Toast;
+import edu.ucla.nesl.rulemanager.Const;
 import edu.ucla.nesl.rulemanager.data.RuleGridElement;
 import edu.ucla.nesl.rulemanager.db.model.LocationLabel;
 import edu.ucla.nesl.rulemanager.db.model.Rule;

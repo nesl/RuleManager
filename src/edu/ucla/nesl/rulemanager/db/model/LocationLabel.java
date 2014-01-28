@@ -4,7 +4,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import edu.ucla.nesl.rulemanager.Const;
-import edu.ucla.nesl.rulemanager.Tools;
+import edu.ucla.nesl.rulemanager.tools.Tools;
 
 
 public class LocationLabel extends Label {

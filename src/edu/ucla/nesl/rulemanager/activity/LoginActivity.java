@@ -11,7 +11,7 @@ import android.widget.TextView;
 import edu.ucla.nesl.rulemanager.Const;
 import edu.ucla.nesl.rulemanager.R;
 import edu.ucla.nesl.rulemanager.SyncService;
-import edu.ucla.nesl.rulemanager.Tools;
+import edu.ucla.nesl.rulemanager.tools.Tools;
 
 public class LoginActivity extends Activity {
 

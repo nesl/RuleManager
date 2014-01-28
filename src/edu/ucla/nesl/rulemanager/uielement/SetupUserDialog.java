@@ -8,9 +8,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import edu.ucla.nesl.rulemanager.Const;
-import edu.ucla.nesl.rulemanager.IPAddressValidator;
 import edu.ucla.nesl.rulemanager.R;
-import edu.ucla.nesl.rulemanager.Tools;
+import edu.ucla.nesl.rulemanager.tools.IPAddressValidator;
+import edu.ucla.nesl.rulemanager.tools.Tools;
 
 public class SetupUserDialog extends Dialog {
 

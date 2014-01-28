@@ -23,12 +23,12 @@ import android.widget.TabHost.TabSpec;
 import android.widget.TextView;
 import edu.ucla.nesl.rulemanager.Const;
 import edu.ucla.nesl.rulemanager.R;
-import edu.ucla.nesl.rulemanager.Tools;
-import edu.ucla.nesl.rulemanager.Tools.TableDataResult;
 import edu.ucla.nesl.rulemanager.db.LocationLabelDataSource;
 import edu.ucla.nesl.rulemanager.db.RuleDataSource;
 import edu.ucla.nesl.rulemanager.db.TimeLabelDataSource;
 import edu.ucla.nesl.rulemanager.db.model.Rule;
+import edu.ucla.nesl.rulemanager.tools.Tools;
+import edu.ucla.nesl.rulemanager.tools.Tools.TableDataResult;
 import edu.ucla.nesl.rulemanager.uielement.GridRuleTableLayout;
 
 public class RuleGridActivity extends TabActivity {

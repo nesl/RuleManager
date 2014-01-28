@@ -54,6 +54,9 @@ import edu.ucla.nesl.rulemanager.db.TimeLabelDataSource;
 import edu.ucla.nesl.rulemanager.db.model.LocationLabel;
 import edu.ucla.nesl.rulemanager.db.model.Rule;
 import edu.ucla.nesl.rulemanager.db.model.TimeLabel;
+import edu.ucla.nesl.rulemanager.tools.Base64;
+import edu.ucla.nesl.rulemanager.tools.MySSLSocketFactory;
+import edu.ucla.nesl.rulemanager.tools.NetworkUtils;
 
 public class SyncService extends IntentService {
 

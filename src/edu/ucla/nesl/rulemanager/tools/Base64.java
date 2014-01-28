@@ -1,4 +1,4 @@
-package edu.ucla.nesl.rulemanager;
+package edu.ucla.nesl.rulemanager.tools;
 
 /*
  * Copyright (C) 2010 The Android Open Source Project

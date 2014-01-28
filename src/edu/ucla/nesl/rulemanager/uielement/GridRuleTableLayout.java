@@ -25,10 +25,10 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import edu.ucla.nesl.rulemanager.Const;
 import edu.ucla.nesl.rulemanager.R;
-import edu.ucla.nesl.rulemanager.Tools;
 import edu.ucla.nesl.rulemanager.activity.LocationLabelActivity;
 import edu.ucla.nesl.rulemanager.activity.TimeLabelActivity;
 import edu.ucla.nesl.rulemanager.data.RuleGridElement;
+import edu.ucla.nesl.rulemanager.tools.Tools;
 
 public class GridRuleTableLayout extends RelativeLayout {
 

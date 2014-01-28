@@ -1,4 +1,4 @@
-package edu.ucla.nesl.rulemanager;
+package edu.ucla.nesl.rulemanager.tools;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;

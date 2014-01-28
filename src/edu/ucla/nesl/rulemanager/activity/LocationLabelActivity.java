@@ -20,10 +20,11 @@ import android.widget.EditText;
 import android.widget.Toast;
 import edu.ucla.nesl.rulemanager.Const;
 import edu.ucla.nesl.rulemanager.R;
-import edu.ucla.nesl.rulemanager.Tools;
 import edu.ucla.nesl.rulemanager.SyncService;
 import edu.ucla.nesl.rulemanager.db.LocationLabelDataSource;
 import edu.ucla.nesl.rulemanager.db.RuleDataSource;
+import edu.ucla.nesl.rulemanager.tools.NetworkUtils;
+import edu.ucla.nesl.rulemanager.tools.Tools;
 
 @SuppressLint("SetJavaScriptEnabled")
 public class LocationLabelActivity extends Activity {
@@ -37,12 +38,26 @@ public class LocationLabelActivity extends Activity {
 
 	private EditText labelEditText;
 	private String prevLabelName;
-	
+
 	private boolean isSetupLabel= false;
+	private int networkStatus;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+		networkStatus = NetworkUtils.getConnectivityStatus(this);
+		if (networkStatus == NetworkUtils.TYPE_NOT_CONNECTED) {
+			Tools.showAlertDialog(this, "No Internet Connection", "You need Internet connection to manage location labels."
+					, new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface arg0, int arg1) {
+					LocationLabelActivity.this.finish();
+				}
+			});
+			return;
+		}
+
 		setContentView(R.layout.activity_add_new_location_label);
 
 		ruleDataSource = new RuleDataSource(this);
@@ -95,7 +110,7 @@ public class LocationLabelActivity extends Activity {
 			if (bundle != null) {
 				String labelName = bundle.getString(Const.BUNDLE_KEY_LABEL_NAME);
 				labelEditText.setText(labelName);
-				
+
 				isSetupLabel = bundle.getBoolean(Const.BUNDLE_KEY_IS_SETUP_LABEL);
 				if (isSetupLabel) {
 					labelEditText.setEnabled(false);
@@ -147,15 +162,21 @@ public class LocationLabelActivity extends Activity {
 
 	@Override
 	protected void onResume() {
-		locationLabelDataSource.open();
-		ruleDataSource.open();
-		super.onResume();
+		if (networkStatus != NetworkUtils.TYPE_NOT_CONNECTED) {
+			locationLabelDataSource.open();
+			ruleDataSource.open();
+		}
+		super.onResume();		
 	}
 
 	@Override
 	protected void onPause() {
-		locationLabelDataSource.close();
-		ruleDataSource.close();
+		if (locationLabelDataSource != null) {
+			locationLabelDataSource.close();
+		}
+		if (ruleDataSource != null) {
+			ruleDataSource.close();
+		}
 		super.onPause();
 	}
 
@@ -223,7 +244,7 @@ public class LocationLabelActivity extends Activity {
 					finish();
 				}
 			});		
-			
+
 			SyncService.startSyncService(this);
 		}
 	}

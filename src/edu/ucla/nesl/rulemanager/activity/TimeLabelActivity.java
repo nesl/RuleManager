@@ -22,11 +22,11 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import edu.ucla.nesl.rulemanager.Const;
 import edu.ucla.nesl.rulemanager.R;
-import edu.ucla.nesl.rulemanager.Tools;
 import edu.ucla.nesl.rulemanager.SyncService;
 import edu.ucla.nesl.rulemanager.db.RuleDataSource;
 import edu.ucla.nesl.rulemanager.db.TimeLabelDataSource;
 import edu.ucla.nesl.rulemanager.db.model.TimeLabel;
+import edu.ucla.nesl.rulemanager.tools.Tools;
 import edu.ucla.nesl.rulemanager.uielement.TimeRepeatDialog;
 import edu.ucla.nesl.rulemanager.uielement.TimeRepeatDialog.TimeRepeatDialogListener;
 

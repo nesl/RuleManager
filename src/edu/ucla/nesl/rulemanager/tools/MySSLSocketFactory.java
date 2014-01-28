@@ -1,4 +1,4 @@
-package edu.ucla.nesl.rulemanager;
+package edu.ucla.nesl.rulemanager.tools;
 
 import java.io.IOException;
 import java.net.Socket;

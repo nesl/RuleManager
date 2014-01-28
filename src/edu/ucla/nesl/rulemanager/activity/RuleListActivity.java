@@ -21,9 +21,9 @@ import android.widget.TextView;
 import edu.ucla.nesl.rulemanager.Const;
 import edu.ucla.nesl.rulemanager.R;
 import edu.ucla.nesl.rulemanager.SyncService;
-import edu.ucla.nesl.rulemanager.Tools;
 import edu.ucla.nesl.rulemanager.db.RuleDataSource;
 import edu.ucla.nesl.rulemanager.db.model.Rule;
+import edu.ucla.nesl.rulemanager.tools.Tools;
 
 public class RuleListActivity extends Activity {
 

@@ -12,9 +12,9 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Spinner;
 import edu.ucla.nesl.rulemanager.R;
-import edu.ucla.nesl.rulemanager.Tools;
 import edu.ucla.nesl.rulemanager.db.SQLiteHelper;
 import edu.ucla.nesl.rulemanager.db.model.TimeLabel;
+import edu.ucla.nesl.rulemanager.tools.Tools;
 
 public class TimeRepeatDialog extends Dialog {
 

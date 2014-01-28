@@ -10,7 +10,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import edu.ucla.nesl.rulemanager.Const;
 import edu.ucla.nesl.rulemanager.R;
-import edu.ucla.nesl.rulemanager.Tools;
+import edu.ucla.nesl.rulemanager.tools.Tools;
 import edu.ucla.nesl.rulemanager.uielement.SetupUserDialog;
 import edu.ucla.nesl.rulemanager.uielement.SetupUserDialog.OnFinishListener;
 
