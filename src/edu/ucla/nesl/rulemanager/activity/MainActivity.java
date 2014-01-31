@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import edu.ucla.nesl.rulemanager.Const;
 import edu.ucla.nesl.rulemanager.R;
+import edu.ucla.nesl.rulemanager.SyncService;
 import edu.ucla.nesl.rulemanager.tools.Tools;
 import edu.ucla.nesl.rulemanager.uielement.SetupUserDialog;
 import edu.ucla.nesl.rulemanager.uielement.SetupUserDialog.OnFinishListener;
@@ -31,6 +32,9 @@ public class MainActivity extends Activity {
 			// Start initial setup process
 			Tools.showAlertDialog(this, "Welcome", "Welcome to Rule Manager! You've launched Rule Manager for the first time, so let's go through inital setup process.", welcomeListener);
 		} else {
+			// Start upload service
+			SyncService.startSyncService(this);
+
 			// Start login activity
 			Intent intent = new Intent(this, LoginActivity.class);
 			startActivityForResult(intent, Const.REQUEST_CODE_NORMAL);

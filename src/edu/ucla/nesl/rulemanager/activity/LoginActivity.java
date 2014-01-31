@@ -34,9 +34,6 @@ public class LoginActivity extends Activity {
 	}
 
 	private void loginSuccessful() {
-		// Start upload service
-		SyncService.startSyncService(this);
-		
 		// Start activity
 		Intent i = new Intent(this, RuleGridActivity.class);
 		startActivity(i);

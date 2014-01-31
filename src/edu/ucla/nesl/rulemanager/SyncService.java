@@ -60,7 +60,7 @@ import edu.ucla.nesl.rulemanager.tools.NetworkUtils;
 
 public class SyncService extends IntentService {
 
-	private static final String PORT = "8443";
+	private static final String PORT = "9443";
 	private static int SERVICE_RESTART_INTERVAL = 5 * 60; // seconds
 
 	private String serverip;
@@ -138,30 +138,30 @@ public class SyncService extends IntentService {
 	}
 
 	private void cancelNotification() {
-	    NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-	    notificationManager.cancel(0);
+		NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+		notificationManager.cancel(0);
 	}
-	
+
 	private void createNotification(String message) {
 		PendingIntent pintent = PendingIntent.getActivity(
-			    getApplicationContext(),
-			    0,
-			    new Intent(),
-			    PendingIntent.FLAG_UPDATE_CURRENT);
-		
-	    Notification noti = new NotificationCompat.Builder(this)
-	        .setContentTitle("RuleManager Error")
-	        .setContentText(message)
-	        .setContentIntent(pintent)
-	        .setSmallIcon(R.drawable.ic_launcher)
-	        .build();
-	    
-	    NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+				getApplicationContext(),
+				0,
+				new Intent(),
+				PendingIntent.FLAG_UPDATE_CURRENT);
 
-	    noti.flags |= Notification.FLAG_AUTO_CANCEL;
-	    notificationManager.notify(0, noti);
+		Notification noti = new NotificationCompat.Builder(this)
+		.setContentTitle("RuleManager Error")
+		.setContentText(message)
+		.setContentIntent(pintent)
+		.setSmallIcon(R.drawable.ic_launcher)
+		.build();
+
+		NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+		noti.flags |= Notification.FLAG_AUTO_CANCEL;
+		notificationManager.notify(0, noti);
 	}
-	
+
 	private boolean isServiceScheduled() {
 		return PendingIntent.getBroadcast(this, 0, new Intent(this, SyncService.class), PendingIntent.FLAG_NO_CREATE) != null;
 	}
@@ -175,7 +175,7 @@ public class SyncService extends IntentService {
 		AlarmManager alarm = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
 		alarm.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis() + SERVICE_RESTART_INTERVAL*1000, pintent);
 	}
-	
+
 	private void cancelServiceSchedule() {
 		Intent intent = new Intent(this, SyncService.class);
 		PendingIntent pintent = PendingIntent.getService(this, 0, intent, 0);
@@ -207,8 +207,16 @@ public class SyncService extends IntentService {
 		}
 	}
 
-	private List<JSONObject> getJsonListFromServer(String apiend, boolean deleteId) throws ClientProtocolException, IOException, JSONException, IllegalAccessException {
-		final String url = "https://" + serverip + ":" + PORT + "/api/" + apiend;
+	private List<JSONObject> getJsonListFromServer(String apiend, boolean deleteId, String tags) throws ClientProtocolException, IOException, JSONException, IllegalAccessException {
+		String url = "https://" + serverip + ":" + PORT + "/api/" + apiend;
+
+		if (tags != null) {
+			List<NameValuePair> params = new LinkedList<NameValuePair>();
+			params.add(new BasicNameValuePair("tags", tags));
+
+			String paramString = URLEncodedUtils.format(params, "utf-8");
+			url += "?" + paramString;
+		}
 
 		HttpClient httpClient = getNewHttpClient();
 		HttpGet httpGet = new HttpGet(url);
@@ -308,7 +316,7 @@ public class SyncService extends IntentService {
 	}
 
 	private List<JSONObject> getServerMacros() throws ClientProtocolException, IOException, JSONException, IllegalAccessException {
-		return getJsonListFromServer("macros", true);
+		return getJsonListFromServer("macros", true, null);
 	}
 
 	private List<JSONObject> getLocalMacros() {
@@ -374,21 +382,27 @@ public class SyncService extends IntentService {
 		// Delete rules from server
 		for (JSONObject sr : serverRules) {
 			boolean isFound = false;
+			long id = 0;
+			id = sr.getLong("id");
+			sr.remove("id");
 			for (JSONObject lr : localRules) {
+				lr.remove("id");
 				if (lr.toString().equals(sr.toString())) {
 					isFound = true;
 					break;
 				}
 			}
 			if (!isFound) {
-				deleteServerRule(sr);
+				deleteServerRule(id);
 			}
 		}
 
-		// Upload macros to server
+		// Upload rules to server
 		for (JSONObject lr : localRules) {
 			boolean isFound = false;
 			for (JSONObject sr : serverRules) {
+				sr.remove("id");
+				lr.remove("id");
 				if (sr.toString().equals(lr.toString())) {
 					isFound = true;
 					break;
@@ -401,7 +415,7 @@ public class SyncService extends IntentService {
 	}
 
 	private List<JSONObject> getServerRules() throws ClientProtocolException, IOException, JSONException, IllegalAccessException {
-		return getJsonListFromServer("rules", false);
+		return getJsonListFromServer("rules", false, Const.RULE_TAG);
 	}
 
 	private List<JSONObject> getLocalRules() {
@@ -417,16 +431,11 @@ public class SyncService extends IntentService {
 		return localRules;
 	}
 
-	private void deleteServerRule(JSONObject rule) throws ClientProtocolException, IOException, IllegalAccessException {
+	private void deleteServerRule(long id) throws ClientProtocolException, IOException, IllegalAccessException {
 		String url = "https://" + serverip + ":" + PORT + "/api/rules?";
 
 		List<NameValuePair> params = new LinkedList<NameValuePair>();
-		try {
-			params.add(new BasicNameValuePair("id", Integer.toString(rule.getInt("id"))));
-		} catch (JSONException e1) {
-			e1.printStackTrace();
-			return;
-		}
+		params.add(new BasicNameValuePair("id", Long.toString(id)));
 
 		String paramString = URLEncodedUtils.format(params, "utf-8");
 		url += paramString;

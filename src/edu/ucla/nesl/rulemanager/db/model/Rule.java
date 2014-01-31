@@ -14,8 +14,11 @@ public class Rule {
 	protected String consumer;
 	protected String timeLabel;
 	protected String locationLabel;
+	protected String tags;
 	
- 	public Rule() {}
+ 	public Rule() {
+ 		this.tags = Const.RULE_TAG;
+ 	}
 
 	public Rule(int id, String action, String data, String consumer, String timeLabel, String locationLabel) {
 		this.id = id;
@@ -24,6 +27,7 @@ public class Rule {
 		this.consumer = consumer;
 		this.timeLabel = timeLabel;
 		this.locationLabel = locationLabel;
+		this.tags = Const.RULE_TAG;
 	}
 
 	public int getId() {
@@ -125,6 +129,7 @@ public class Rule {
 			} else if (timeLabel != null && locationLabel == null) {
 				json.put("condition", Tools.makeMacroRefer(Const.TIME_LABEL_PREFIX + timeLabel));
 			}
+			json.put("tags", Const.RULE_TAG);
 		} catch (JSONException e) {
 			e.printStackTrace();
 			return null;

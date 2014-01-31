@@ -2,7 +2,9 @@ package edu.ucla.nesl.rulemanager;
 
 public class Const {
 	public static final String TAG = "RuleManager";
-	
+
+	public static final String RULE_TAG = "rulemanager";
+
 	public static final String GPS_DISTANCE_FUNCTION_NAME = "gps_distance";
 	public static final String LOCATION_STREAM_NAME = "location";
 	public static final String LATITUDE_CHANNEL_NAME = "latitude";
