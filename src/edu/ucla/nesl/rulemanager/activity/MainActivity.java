@@ -76,7 +76,7 @@ public class MainActivity extends Activity {
 			});
 			break;
 		case Const.REQUEST_CODE_SETUP_WORK_TIME:
-			Tools.showAlertDialog(context, "Congratualations!", "Now you're ready to use Rule Manager. Please login in the following screen.", new OnClickListener() {
+			Tools.showAlertDialog(context, "Congratulations!", "Now you're ready to use Rule Manager. Please login in the following screen.", new OnClickListener() {
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					dialog.dismiss();
