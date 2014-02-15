@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <string name="foreground_service_started">RuleManager syncing..</string>
     <string name="app_name">RuleManager</string>
     <string name="action_settings">Settings</string>
     <string name="app_title">Rule Manager</string>
@@ -31,10 +32,9 @@
         <item>Every Tue and Thu</item>
         <item>Monthly</item>
     </string-array>
-    
     <string-array name="label_context_menu">
         <item>Edit</item>
         <item>Delete</item>
     </string-array>
-    
+
 </resources>

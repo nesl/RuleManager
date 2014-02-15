@@ -45,6 +45,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Handler;
+import android.os.PowerManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
@@ -67,16 +68,25 @@ public class SyncService extends IntentService {
 	private String username;
 	private String password;
 
-	private Handler handler;
+	private PowerManager.WakeLock mWakeLock;
 
+	private Handler handler;
+	
 	public SyncService() {
 		super("SyncService");
 	}
 
 	@Override
 	public void onCreate() {
-		super.onCreate();
+		setIntentRedelivery(true);
+		
+		PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+		mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, this.getClass().getName());
+		mWakeLock.setReferenceCounted(false);
+
 		handler = new Handler();
+		
+		super.onCreate();
 	}
 
 	public static void startSyncService(Context context) {
@@ -96,6 +106,14 @@ public class SyncService extends IntentService {
 
 	@Override
 	protected void onHandleIntent(Intent intent) {
+
+		CharSequence text = getText(R.string.foreground_service_started);
+		Notification notification = new Notification(R.drawable.ic_launcher, text, System.currentTimeMillis());
+		PendingIntent contentIntent = PendingIntent.getBroadcast(this, 0, new Intent(), 0);
+		notification.setLatestEventInfo(this, text, text, contentIntent);
+		startForeground(R.string.foreground_service_started, notification);
+
+		acquireWakeLock();
 
 		Context context = getApplicationContext();
 		int status = NetworkUtils.getConnectivityStatus(context);
@@ -135,6 +153,10 @@ public class SyncService extends IntentService {
 			cancelNotification();
 			cancelServiceSchedule();
 		}
+
+		releaseWakeLock();
+		
+		stopForeground(true);
 	}
 
 	private void cancelNotification() {
@@ -466,5 +488,17 @@ public class SyncService extends IntentService {
 
 	private void uploadRule(JSONObject json) throws ClientProtocolException, IOException, IllegalAccessException {
 		uploadJson("rules", json);
+	}
+	
+	private void acquireWakeLock() {
+		if (!mWakeLock.isHeld()) {
+			mWakeLock.acquire();
+		}
+	}
+
+	private void releaseWakeLock() {
+		if (mWakeLock.isHeld()) {
+			mWakeLock.release();
+		}
 	}
 }
