@@ -74,7 +74,7 @@ public class RuleGridActivity extends TabActivity {
 		tabHost.getTabWidget().setDividerDrawable(R.drawable.tab_divider);
 		
 		sensorNames = new ArrayList<String>();
-		sensorNames.addAll(Arrays.asList(Tools.getSensorNames()));
+		sensorNames.addAll(Arrays.asList(Tools.SENSOR_NAMES));
 		
 		HorizontalScrollView tabScrollView = (HorizontalScrollView)findViewById(R.id.tab_scroll_view);
 		tabScrollView.setHorizontalScrollBarEnabled(true);

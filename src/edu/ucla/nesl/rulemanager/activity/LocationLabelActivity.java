@@ -11,6 +11,7 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebChromeClient;
@@ -80,10 +81,12 @@ public class LocationLabelActivity extends Activity {
 		provider = locationManager.getBestProvider(criteria, false);
 		final Location location = locationManager.getLastKnownLocation(provider);
 
-		if (savedInstanceState == null) {
-			mapView = (WebView)findViewById(R.id.map_view);
+		Log.d(Const.TAG, "onCreate()");
 
-			mapView.loadUrl("file:///android_asset/map.html");
+		if (savedInstanceState == null) {
+			Log.d(Const.TAG, "savedInstanceState is null");
+			
+			mapView = (WebView)findViewById(R.id.map_view);
 			mapView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
 			mapView.getSettings().setJavaScriptEnabled(true);
 			mapView.addJavascriptInterface(new WebViewJavaScriptInterface(this), "Android");
@@ -105,7 +108,10 @@ public class LocationLabelActivity extends Activity {
 				}
 			});
 
+			mapView.loadUrl("file:///android_asset/map.html");
+
 			WebViewClient webViewClient = null; 
+			//PictureListener picLis = null;
 			Bundle bundle = getIntent().getExtras();
 			if (bundle != null) {
 				String labelName = bundle.getString(Const.BUNDLE_KEY_LABEL_NAME);
@@ -145,19 +151,34 @@ public class LocationLabelActivity extends Activity {
 				}
 
 			} else if (location != null) {
+				/*picLis = new PictureListener() {
+					@Override
+					public void onNewPicture(WebView view, Picture arg1) {
+						mapView.loadUrl("javascript:(function() { setCurrentLocation("
+								+ location.getLatitude() + ","
+								+ location.getLongitude() + ") })()");
+						Log.d(Const.TAG, "called setCurrentLocation()");
+					} 
+				};*/
 				webViewClient = new WebViewClient() {
 					@Override
 					public void onPageFinished(WebView view, String url) {
 						mapView.loadUrl("javascript:(function() { setCurrentLocation("
 								+ location.getLatitude() + ","
-								+ location.getLongitude() + ") })()");
+								+ location.getLongitude() + ") })()");						
 					}
 				};
 			}
+
 			if (webViewClient != null) {
 				mapView.setWebViewClient(webViewClient);
 			}
+
+			/*if (picLis != null) {
+				mapView.setPictureListener(picLis);
+			}*/
 		}
+		Log.d(Const.TAG, "end of savedInstanceState");
 	}
 
 	@Override

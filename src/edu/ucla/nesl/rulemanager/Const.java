@@ -6,9 +6,9 @@ public class Const {
 	public static final String RULE_TAG = "rulemanager";
 
 	public static final String GPS_DISTANCE_FUNCTION_NAME = "gps_distance";
-	public static final String LOCATION_STREAM_NAME = "location";
-	public static final String LATITUDE_CHANNEL_NAME = "latitude";
-	public static final String LONGITUDE_CHANNEL_NAME = "longitude";
+	public static final String LOCATION_STREAM_NAME = "PhoneGPS";
+	public static final String LATITUDE_CHANNEL_NAME = "ch1";
+	public static final String LONGITUDE_CHANNEL_NAME = "ch2";
 
 	public static final int REQUEST_CODE_NORMAL = 1;
 	public static final int REQUEST_CODE_NEW_LABEL = 2;

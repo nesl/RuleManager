@@ -35,6 +35,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import org.skyscreamer.jsonassert.JSONAssert;
 
 import android.app.AlarmManager;
 import android.app.IntentService;
@@ -274,6 +275,9 @@ public class SyncService extends IntentService {
 	}
 
 	private void uploadJson(String apiend, JSONObject json) throws ClientProtocolException, IOException, IllegalAccessException {
+		
+		Log.i(Const.TAG, "Uploading JSON: " + json.toString());
+		
 		final String url = "https://" + serverip + ":" + PORT + "/api/" + apiend;
 
 		HttpClient httpClient = getNewHttpClient();
@@ -311,9 +315,12 @@ public class SyncService extends IntentService {
 		for (JSONObject sm : serverMacros) {
 			boolean isFound = false;
 			for (JSONObject lm : localMacros) {
-				if (lm.toString().equals(sm.toString())) {
+				try {
+					JSONAssert.assertEquals(sm, lm, true);
 					isFound = true;
 					break;
+				} catch (AssertionError e) {
+					//e.printStackTrace();
 				}
 			}
 			if (!isFound) {
@@ -325,9 +332,12 @@ public class SyncService extends IntentService {
 		for (JSONObject lm : localMacros) {
 			boolean isFound = false;
 			for (JSONObject sm : serverMacros) {
-				if (sm.toString().equals(lm.toString())) {
+				try {
+					JSONAssert.assertEquals(sm, lm, true);
 					isFound = true;
 					break;
+				} catch (AssertionError e) {
+					//e.printStackTrace();
 				}
 			}
 			if (!isFound) {
@@ -406,11 +416,16 @@ public class SyncService extends IntentService {
 			long id = 0;
 			id = sr.getLong("id");
 			sr.remove("id");
+			sr.remove("priority");
 			for (JSONObject lr : localRules) {
 				lr.remove("id");
-				if (lr.toString().equals(sr.toString())) {
+				
+				try {
+					JSONAssert.assertEquals(sr, lr, true);
 					isFound = true;
 					break;
+				} catch (AssertionError e) {
+					//e.printStackTrace();
 				}
 			}
 			if (!isFound) {
@@ -420,13 +435,18 @@ public class SyncService extends IntentService {
 
 		// Upload rules to server
 		for (JSONObject lr : localRules) {
+			lr.remove("id");
 			boolean isFound = false;
 			for (JSONObject sr : serverRules) {
 				sr.remove("id");
-				lr.remove("id");
-				if (sr.toString().equals(lr.toString())) {
+				sr.remove("priority");
+				
+				try {
+					JSONAssert.assertEquals(sr, lr, true);
 					isFound = true;
 					break;
+				} catch (AssertionError e) {
+					//e.printStackTrace();
 				}
 			}
 			if (!isFound) {

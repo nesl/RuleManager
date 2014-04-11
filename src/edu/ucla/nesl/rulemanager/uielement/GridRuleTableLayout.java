@@ -420,7 +420,7 @@ public class GridRuleTableLayout extends RelativeLayout {
 
 		// prepare sets
 		Set<String> everyone = new HashSet<String>();
-		everyone.addAll(Arrays.asList(Tools.getConsumerNames()));
+		everyone.addAll(Arrays.asList(Tools.CONSUMER_NAMES));
 		Set<String> allowed = new HashSet<String>();
 		allowed.addAll(elem.allowedList);
 		Set<String> denied = new HashSet<String>();
@@ -642,7 +642,7 @@ public class GridRuleTableLayout extends RelativeLayout {
 
 	private boolean isEveryoneAllowed(List<String> allowedList) {
 		List<String> allConsumers = new ArrayList<String>();
-		allConsumers.addAll(Arrays.asList(Tools.getConsumerNames()));
+		allConsumers.addAll(Arrays.asList(Tools.CONSUMER_NAMES));
 		for (String allowed : allowedList) {
 			allConsumers.remove(allowed);
 		}

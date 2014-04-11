@@ -91,7 +91,7 @@ public class RuleActivity extends Activity {
 		sensorSpinner = (Spinner) findViewById(R.id.sensor_spinner);
 		List<String> sensorNames = new ArrayList<String>();
 		sensorNames.add(Const.ALL);
-		sensorNames.addAll(Arrays.asList(Tools.getSensorNames()));
+		sensorNames.addAll(Arrays.asList(Tools.SENSOR_NAMES));
 		sensorSpinnerAdapter = new ArrayAdapter(this, android.R.layout.simple_spinner_item, sensorNames);
 		sensorSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		sensorSpinner.setAdapter(sensorSpinnerAdapter);
@@ -99,7 +99,7 @@ public class RuleActivity extends Activity {
 		consumerSpinner = (Spinner) findViewById(R.id.consumer_spinner);
 		List<String> consumerNames = new ArrayList<String>();
 		consumerNames.add(Const.EVERYONE);
-		consumerNames.addAll(Arrays.asList(Tools.getConsumerNames()));		
+		consumerNames.addAll(Arrays.asList(Tools.CONSUMER_NAMES));		
 		consumerSpinnerAdapter = new ArrayAdapter(this, android.R.layout.simple_spinner_item, consumerNames);
 		consumerSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		consumerSpinner.setAdapter(consumerSpinnerAdapter);
@@ -481,7 +481,7 @@ public class RuleActivity extends Activity {
 	private String generateConflictRulesMsg(List<Rule> rules) {
 		List<String> timeLabels = timeLabelDataSource.getLabelNamesWithOther();
 		List<String> locationLabels = locationLabelDataSource.getLabelNamesWithOther();
-		List<String> sensorNames = Arrays.asList(Tools.getSensorNames());
+		List<String> sensorNames = Arrays.asList(Tools.SENSOR_NAMES);
 		
 		Tools.TableDataResult tableDataResult = Tools.prepareTableData(sensorNames, timeLabels, locationLabels, rules, timeLabelDataSource.getTimeLabels(), locationLabelDataSource.getLocationLabels());
 		

@@ -11,7 +11,6 @@ import org.apache.commons.collections4.map.MultiKeyMap;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.util.Log;
 import android.widget.Toast;
 import edu.ucla.nesl.rulemanager.Const;
 import edu.ucla.nesl.rulemanager.data.RuleGridElement;
@@ -20,6 +19,8 @@ import edu.ucla.nesl.rulemanager.db.model.Rule;
 import edu.ucla.nesl.rulemanager.db.model.TimeLabel;
 
 public class Tools {
+	public static String[] CONSUMER_NAMES = { "researcher", "family", "friend", "acquaintance", "public" };
+	public static String[] SENSOR_NAMES = { "PhoneGPS", "PhoneAccelerometer", "ECG", "Breathing", "Activity", "Stress", "Conversation" };
 
 	public static void showAlertDialog(Context context, String title, String message) {
 		showAlertDialog(context, title, message, new DialogInterface.OnClickListener() {
@@ -55,14 +56,6 @@ public class Tools {
 
 	public static void showMessage(Context context, String message) {
 		Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
-	}
-
-	public static String[] getConsumerNames() {
-		return new String[] { "researchers", "acquaintances", "family", "friends" };
-	}
-
-	public static String[] getSensorNames() {
-		return new String[] { "location", "audio", "ECG", "skin conductance", "respiration" };
 	}
 
 	public static class TableDataResult {

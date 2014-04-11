@@ -114,7 +114,11 @@ public class Rule {
 			}
 			if (data != null && !data.equalsIgnoreCase(Const.ALL)) {
 				JSONArray arr = new JSONArray();
-				arr.put(data);
+				if (data.equals("Breathing")) {
+					arr.put("RIP");
+				} else {
+					arr.put(data);	
+				}
 				json.put("target_streams", arr);
 			}
 			if (consumer != null && !consumer.equalsIgnoreCase(Const.EVERYONE)) {
